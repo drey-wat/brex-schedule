@@ -197,7 +197,7 @@
       font-size: 14px;
     }
 
-    tbody tr { transition: none; }
+    tbody tr { transition: none; cursor: pointer; }
 
     .badge {
       display: inline-block;
@@ -321,6 +321,81 @@
     }
 
     .chip:hover { background: rgba(122, 162, 255, 0.3); transform: none; }
+
+/* ── モーダル ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: rgba(15,27,54,0.97);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px 24px 24px;
+      width: min(400px, 90vw);
+      max-height: min(90svh, 90vh);
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      transform: translateY(12px);
+      transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute; top: 12px; right: 14px;
+      background: none; border: none;
+      color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; padding: 4px;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-row {
+      display: flex; gap: 10px; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .modal-row:last-child { border-bottom: none; }
+    .modal-label { width: 60px; font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .modal-value { color: var(--text); font-weight: 600; }
+    .modal-opp { display: flex; align-items: center; gap: 8px; }
+    .modal-logo { height: 28px; width: auto; object-fit: contain; }
+
+    .going-section {
+      display: flex; align-items: center;
+      padding: 12px 0 4px; border-top: 1px solid var(--line); margin-top: 4px;
+    }
+    .going-label {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; font-size: 15px; font-weight: 700;
+      color: var(--text); user-select: none;
+    }
+    .going-label input[type="checkbox"] {
+      appearance: none; -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border: 2px solid var(--line); border-radius: 5px;
+      background: rgba(255,255,255,0.06);
+      cursor: pointer; position: relative; flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .going-label input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+    .going-label input[type="checkbox"]:checked::after {
+      content: "✓"; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: #0b1020; font-size: 14px; font-weight: 900; line-height: 1;
+    }
+    .memo-section { margin-top: 14px; }
+    .memo-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .modal-memo {
+      width: 100%; padding: 10px 12px;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+      border-radius: 8px; color: var(--text); font-size: 13px;
+      font-family: inherit; resize: vertical; min-height: 72px;
+      outline: none; transition: border-color 0.15s; box-sizing: border-box;
+    }
+    .modal-memo:focus { border-color: rgba(122,162,255,0.5); }
+    .modal-memo::placeholder { color: var(--muted); opacity: 0.6; }
+    @media (max-width: 640px) { .modal-memo { font-size: 16px; } }
 
 /* スクロールトップボタン */
     .scroll-top {
@@ -459,6 +534,7 @@
         padding: 12px 14px;
         background: rgba(255, 255, 255, 0.05);
         transform: none !important;
+        cursor: pointer;
       }
 
       tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
@@ -607,6 +683,23 @@
         <tbody id="scheduleBody"></tbody>
       </table>
       <div id="empty" class="empty">該当する試合がありません。</div>
+    </div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">×</button>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="going-section">
+        <label class="going-label">
+          <input type="checkbox" id="goingCheck">
+          <span>行く！</span>
+        </label>
+      </div>
+      <div class="memo-section">
+        <label class="memo-label" for="memoInput">メモ</label>
+        <textarea id="memoInput" class="modal-memo" placeholder="メモを入力..."></textarea>
+      </div>
     </div>
   </div>
 
@@ -784,6 +877,11 @@
         }
 
         const tr = document.createElement("tr");
+        tr.dataset.date     = row["日付"];
+        tr.dataset.day      = row["曜日"];
+        tr.dataset.kubun    = row["区分"];
+        tr.dataset.opponent = row["対戦相手"];
+        tr.dataset.venue    = row["会場"];
 
         const day = row["曜日"];
         const kubun = row["区分"];
@@ -911,6 +1009,90 @@ const allData = parseCSV(csvData);
     filterToggle.addEventListener("click", () => {
       const collapsed = filterCard.classList.toggle("is-collapsed");
       filterToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+
+    // ── モーダル ──
+    const modalOverlay = document.getElementById("modalOverlay");
+    const memoInput    = document.getElementById("memoInput");
+    const goingCheck   = document.getElementById("goingCheck");
+    let currentDate    = null;
+    let currentMemoKey = null;
+    const DAY_JP_MODAL = { MON:"月", TUE:"火", WED:"水", THU:"木", FRI:"金", SAT:"土", SUN:"日" };
+
+    function openModal() {
+      const scrollY = window.scrollY;
+      document.body.dataset.scrollY = scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      modalOverlay.classList.add("open");
+    }
+    function closeModal() {
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
+      modalOverlay.classList.remove("open");
+      currentDate = null;
+      currentMemoKey = null;
+    }
+
+    document.getElementById("modalClose").addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+    goingCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (goingCheck.checked) localStorage.setItem(`brex-going-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-going-${currentDate}`);
+    });
+
+    memoInput.addEventListener("input", () => {
+      if (!currentMemoKey) return;
+      const val = memoInput.value;
+      if (val) localStorage.setItem(currentMemoKey, val);
+      else localStorage.removeItem(currentMemoKey);
+    });
+
+    scheduleBody.addEventListener("click", e => {
+      const tr = e.target.closest("tr[data-date]");
+      if (!tr) return;
+      const { date, day, kubun, opponent, venue } = tr.dataset;
+      const [y, m, d] = date.split("/");
+      const dateLabel = `${y}年${m}月${d}日`;
+      const dayLabel  = `${DAY_JP_MODAL[day] || day}（${day}）`;
+      const badgeCls  = kubun === "HOME" ? "home" : "away";
+      const logo      = teamLogos[opponent] || "";
+      document.getElementById("modalBody").innerHTML = `
+        <div class="modal-row">
+          <span class="modal-label">日付</span>
+          <span class="modal-value">${dateLabel}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">曜日</span>
+          <span class="modal-value">${dayLabel}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">区分</span>
+          <span class="modal-value"><span class="badge ${badgeCls}">${kubun}</span></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">対戦相手</span>
+          <span class="modal-value modal-opp">
+            ${logo ? `<img class="modal-logo" src="${logo}" alt="" onerror="this.style.display='none'">` : ""}
+            ${opponent}
+          </span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">会場</span>
+          <span class="modal-value">${venue}</span>
+        </div>`;
+      currentDate    = date;
+      currentMemoKey = `brex-memo-${date}`;
+      goingCheck.checked = localStorage.getItem(`brex-going-${date}`) === "1";
+      memoInput.value    = localStorage.getItem(currentMemoKey) || "";
+      openModal();
     });
 
     window.addEventListener("scroll", () => {
