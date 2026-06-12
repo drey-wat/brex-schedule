@@ -250,23 +250,7 @@
       border: none;
     }
 
-    /* 直近試合マーカー */
-    .next-marker td {
-      padding: 4px 12px 2px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: 0.06em;
-      border: none;
-    }
-
-    /* 直近試合ハイライト行 */
-    tbody tr.is-next {
-      background: rgba(122, 162, 255, 0.1) !important;
-      box-shadow: inset 3px 0 0 var(--accent);
-    }
-
-    /* 検索マッチハイライト */
+/* 検索マッチハイライト */
     mark.hl {
       background: rgba(255, 212, 0, 0.3);
       color: inherit;
@@ -495,8 +479,8 @@
         color: var(--muted);
       }
 
-      /* 月見出し・直近マーカーをカード間の区切りとして表示 */
-      .month-header, .next-marker {
+      /* 月見出しをカード間の区切りとして表示 */
+      .month-header {
         display: block !important;
         border: none !important;
         border-radius: 0 !important;
@@ -507,7 +491,6 @@
         box-shadow: none !important;
       }
       .month-header td { display: block; padding: 16px 4px 2px; border: none; }
-      .next-marker td { display: block; padding: 6px 4px 0; border: none; }
     }
   </style>
 </head>
@@ -721,14 +704,6 @@
       }
       empty.style.display = "none";
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      let nextIdx = -1;
-      for (let i = 0; i < data.length; i++) {
-        const [y, m, d] = data[i]["日付"].split("/").map(Number);
-        if (new Date(y, m - 1, d) >= today) { nextIdx = i; break; }
-      }
-
       const frag = document.createDocumentFragment();
       let currentMonth = null;
 
@@ -744,15 +719,7 @@
           frag.appendChild(mtr);
         }
 
-        if (i === nextIdx) {
-          const ntr = document.createElement("tr");
-          ntr.className = "next-marker";
-          ntr.innerHTML = `<td colspan="5">▼ 次の試合</td>`;
-          frag.appendChild(ntr);
-        }
-
         const tr = document.createElement("tr");
-        if (i === nextIdx) tr.classList.add("is-next");
 
         const day = row["曜日"];
         const kubun = row["区分"];
