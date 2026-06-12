@@ -284,19 +284,7 @@
 
     .chip:hover { background: rgba(122, 162, 255, 0.3); transform: none; }
 
-    /* iCalボタン */
-    .btn-ical {
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      width: auto;
-      transition: .2s;
-    }
-
-    .btn-ical:hover { background: rgba(255,255,255,0.14); transform: none; }
-
-    /* スクロールトップボタン */
+/* スクロールトップボタン */
     .scroll-top {
       position: fixed;
       bottom: 24px;
@@ -552,7 +540,6 @@
 
     <div class="meta">
       <span id="resultCount">0 件</span>
-      <button id="icalBtn" class="btn-ical">📅 カレンダーに追加</button>
     </div>
 
     <div id="activeChips" class="active-chips"></div>
@@ -658,7 +645,6 @@
     const filterToggle = document.getElementById("filterToggle");
     const filterBadge = document.getElementById("filterBadge");
     const activeChips = document.getElementById("activeChips");
-    const icalBtn = document.getElementById("icalBtn");
     const scrollTopBtn = document.getElementById("scrollTopBtn");
 
     function parseCSV(csv) {
@@ -753,44 +739,7 @@
       ).join("");
     }
 
-    function exportICal(data) {
-      const pad = n => String(n).padStart(2, "0");
-      const lines = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//宇都宮ブレックス スケジュール//JP",
-        "CALSCALE:GREGORIAN",
-        "X-WR-CALNAME:宇都宮ブレックス 2026-2027",
-        "X-WR-TIMEZONE:Asia/Tokyo",
-      ];
-      data.forEach((row, i) => {
-        const [y, m, d] = row["日付"].split("/").map(Number);
-        const dateStr = `${y}${pad(m)}${pad(d)}`;
-        const next = new Date(y, m - 1, d + 1);
-        const nextStr = `${next.getFullYear()}${pad(next.getMonth() + 1)}${pad(next.getDate())}`;
-        lines.push(
-          "BEGIN:VEVENT",
-          `DTSTART;VALUE=DATE:${dateStr}`,
-          `DTEND;VALUE=DATE:${nextStr}`,
-          `SUMMARY:【${row["区分"]}】vs ${row["対戦相手"]}`,
-          `LOCATION:${row["会場"]}`,
-          `UID:brex-${dateStr}-${i}@brex-schedule`,
-          "END:VEVENT"
-        );
-      });
-      lines.push("END:VCALENDAR");
-      const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "brex-schedule.ics";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    const allData = parseCSV(csvData);
+const allData = parseCSV(csvData);
 
     allData.forEach((row, i) => {
       const prev = allData[i - 1];
@@ -867,8 +816,6 @@
       updateFilterBadge();
       updateChips();
     });
-
-    icalBtn.addEventListener("click", () => exportICal(currentFiltered));
 
     activeChips.addEventListener("click", e => {
       const btn = e.target.closest(".chip");
