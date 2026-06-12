@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宇都宮ブレックス 2026-2027 カレンダー</title>
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #111a33;
+      --glass: rgba(255, 255, 255, 0.08);
+      --text: #eaf0ff;
+      --muted: #a7b0ca;
+      --line: rgba(255, 255, 255, 0.16);
+      --accent: #7aa2ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
+        radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      padding: 28px 14px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── ヘッダー ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .page-title small {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid rgba(122,162,255,0.4);
+      border-radius: 999px;
+      transition: background 0.15s;
+    }
+    .nav-link:hover { background: rgba(122,162,255,0.12); }
+
+    /* ── 月ナビ ── */
+    .month-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+
+    .month-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .month-nav a:hover {
+      color: var(--accent);
+      border-color: rgba(122,162,255,0.5);
+      background: rgba(122,162,255,0.08);
+    }
+
+    /* ── 月セクション ── */
+    .month-section {
+      margin-bottom: 36px;
+      scroll-margin-top: 16px;
+    }
+
+    .month-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+
+    /* ── カレンダーグリッド ── */
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .cal-header {
+      text-align: center;
+      padding: 6px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .cal-header.sat { color: #4da3ff; }
+    .cal-header.sun { color: #ff6b6b; }
+
+    /* ── 日付セル ── */
+    .cal-cell {
+      min-height: 90px;
+      padding: 8px 6px 6px;
+      background: rgba(255,255,255,0.025);
+      border-radius: 8px;
+      border: 1px solid transparent;
+    }
+
+    .cal-cell.empty {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .cal-cell.has-game {
+      background: rgba(255,255,255,0.055);
+      border-color: var(--line);
+    }
+
+    .cal-date {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .cal-cell.day-sat .cal-date { color: #4da3ff; }
+    .cal-cell.day-sun .cal-date { color: #ff6b6b; }
+
+    /* ── 試合情報 ── */
+    .game-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .home { background: #FFD400; color: #12315A; }
+    .away { background: linear-gradient(135deg, #ff5f78, #ff4545); color: #fff; }
+
+    .team-logo {
+      height: 20px;
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+      border-radius: 2px;
+    }
+
+    .opp {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    /* ── モバイル ── */
+    @media (max-width: 640px) {
+      body { padding: 16px 10px; }
+      .page-title { font-size: 17px; }
+      .cal-cell { min-height: 62px; padding: 6px 4px; }
+      .cal-date { font-size: 11px; margin-bottom: 3px; }
+      .badge { font-size: 9px; padding: 1px 4px; }
+      .team-logo { height: 15px; }
+      .opp { font-size: 10px; }
+      .game-item { gap: 3px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="page-header">
+      <h1 class="page-title">宇都宮ブレックス <small>2026-2027</small></h1>
+      <a class="nav-link" href="index.html">← 一覧表示</a>
+    </div>
+
+    <nav class="month-nav" id="monthNav"></nav>
+
+    <div id="calendar"></div>
+
+  </div>
+
+  <script>
+    const CSV = `日付,曜日,区分,対戦相手,会場
+2026/9/26,SAT,HOME,横浜ビー・コルセアーズ,日環アリーナ栃木
+2026/9/27,SUN,HOME,横浜ビー・コルセアーズ,日環アリーナ栃木
+2026/10/3,SAT,AWAY,富山グラウジーズ,YKK APアリーナ
+2026/10/4,SUN,AWAY,富山グラウジーズ,YKK APアリーナ
+2026/10/9,FRI,AWAY,茨城ロボッツ,アダストリアみとアリーナ
+2026/10/11,SUN,HOME,秋田ノーザンハピネッツ,ブレックスアリーナ宇都宮
+2026/10/17,SAT,AWAY,仙台89ERS,ゼビオアリーナ仙台
+2026/10/19,MON,HOME,群馬クレインサンダーズ,ブレックスアリーナ宇都宮
+2026/10/21,WED,HOME,名古屋ダイヤモンドドルフィンズ,ブレックスアリーナ宇都宮
+2026/10/24,SAT,HOME,信州ブレイブウォリアーズ,ブレックスアリーナ宇都宮
+2026/10/26,MON,HOME,川崎ブレイブサンダース,ブレックスアリーナ宇都宮
+2026/10/31,SAT,AWAY,アルバルク東京,TOYOTA ARENA TOKYO
+2026/11/1,SUN,AWAY,アルバルク東京,TOYOTA ARENA TOKYO
+2026/11/7,SAT,HOME,琉球ゴールデンキングス,ブレックスアリーナ宇都宮
+2026/11/11,WED,HOME,京都ハンナリーズ,ブレックスアリーナ宇都宮
+2026/11/15,SUN,AWAY,島根スサノオマジック,松江市総合体育館
+2026/11/18,WED,HOME,レバンガ北海道,ブレックスアリーナ宇都宮
+2026/12/4,FRI,AWAY,シーホース三河,ウィングアリーナ刈谷
+2026/12/6,SUN,HOME,三遠ネオフェニックス,ブレックスアリーナ宇都宮
+2026/12/12,SAT,HOME,サンロッカーズ渋谷,日環アリーナ栃木
+2026/12/13,SUN,HOME,サンロッカーズ渋谷,日環アリーナ栃木
+2026/12/16,WED,AWAY,琉球ゴールデンキングス,沖縄サントリーアリーナ
+2026/12/18,FRI,AWAY,大阪エヴェッサ,おおきにアリーナ舞洲
+2026/12/20,SUN,AWAY,大阪エヴェッサ,おおきにアリーナ舞洲
+2026/12/25,FRI,HOME,神戸ストークス,ブレックスアリーナ宇都宮
+2026/12/27,SUN,HOME,神戸ストークス,ブレックスアリーナ宇都宮
+2027/1/2,SAT,AWAY,レバンガ北海道,北海きたえーる
+2027/1/3,SUN,AWAY,レバンガ北海道,北海きたえーる
+2027/1/22,FRI,AWAY,京都ハンナリーズ,京都市体育館
+2027/1/24,SUN,AWAY,佐賀バルーナーズ,SAGAアリーナ
+2027/1/27,WED,HOME,滋賀レイクス,ブレックスアリーナ宇都宮
+2027/1/30,SAT,AWAY,川崎ブレイブサンダース,東急ドレッセとどろきアリーナ
+2027/1/31,SUN,AWAY,川崎ブレイブサンダース,東急ドレッセとどろきアリーナ
+2027/2/3,WED,AWAY,名古屋ダイヤモンドドルフィンズ,IGアリーナ
+2027/2/6,SAT,HOME,仙台89ERS,ブレックスアリーナ宇都宮
+2027/2/7,SUN,HOME,仙台89ERS,ブレックスアリーナ宇都宮
+2027/2/11,THU,HOME,三遠ネオフェニックス,ブレックスアリーナ宇都宮
+2027/2/13,SAT,AWAY,滋賀レイクス,滋賀ダイハツアリーナ
+2027/2/16,TUE,AWAY,広島ドラゴンフライズ,広島グリーンアリーナ
+2027/3/5,FRI,HOME,千葉ジェッツ,日環アリーナ栃木
+2027/3/7,SUN,HOME,千葉ジェッツ,日環アリーナ栃木
+2027/3/10,WED,AWAY,シーホース三河,スカイホール豊田
+2027/3/12,FRI,AWAY,群馬クレインサンダーズ,オープンハウスアリーナ太田
+2027/3/14,SUN,AWAY,群馬クレインサンダーズ,オープンハウスアリーナ太田
+2027/3/17,WED,HOME,富山グラウジーズ,ブレックスアリーナ宇都宮
+2027/3/20,SAT,HOME,茨城ロボッツ,ブレックスアリーナ宇都宮
+2027/3/21,SUN,HOME,茨城ロボッツ,ブレックスアリーナ宇都宮
+2027/3/24,WED,HOME,長崎ヴェルカ,ブレックスアリーナ宇都宮
+2027/3/31,WED,AWAY,佐賀バルーナーズ,SAGAアリーナ
+2027/4/3,SAT,HOME,広島ドラゴンフライズ,調整中
+2027/4/7,WED,HOME,アルバルク東京,調整中
+2027/4/10,SAT,HOME,アルティーリ千葉,調整中
+2027/4/11,SUN,HOME,アルティーリ千葉,調整中
+2027/4/14,WED,AWAY,横浜ビー・コルセアーズ,横浜BUNTAI
+2027/4/21,WED,AWAY,千葉ジェッツ,LaLa arena TOKYO-BAY
+2027/4/24,SAT,AWAY,秋田ノーザンハピネッツ,CNAアリーナあきた
+2027/4/25,SUN,AWAY,秋田ノーザンハピネッツ,CNAアリーナあきた
+2027/4/28,WED,AWAY,サンロッカーズ渋谷,TOYOTA ARENA TOKYO
+2027/4/30,FRI,HOME,長崎ヴェルカ,調整中
+2027/5/2,SUN,AWAY,アルティーリ千葉,千葉ポートアリーナ`;
+
+    const LOGO_BASE = "https://bleague.bl.kuroco-img.app/files/user/common/img/logo/2025/s/";
+    const teamLogos = {
+      "横浜ビー・コルセアーズ":        LOGO_BASE + "yb.png",
+      "富山グラウジーズ":              LOGO_BASE + "tg.png",
+      "茨城ロボッツ":                  LOGO_BASE + "ir.png",
+      "秋田ノーザンハピネッツ":        LOGO_BASE + "an.png",
+      "仙台89ERS":                     LOGO_BASE + "se.png",
+      "群馬クレインサンダーズ":        LOGO_BASE + "gc.png",
+      "名古屋ダイヤモンドドルフィンズ": LOGO_BASE + "dd.png",
+      "信州ブレイブウォリアーズ":      LOGO_BASE + "bw.png",
+      "川崎ブレイブサンダース":        LOGO_BASE + "kb.png",
+      "アルバルク東京":                LOGO_BASE + "at.png",
+      "琉球ゴールデンキングス":        LOGO_BASE + "rg.png",
+      "京都ハンナリーズ":              LOGO_BASE + "kh.png",
+      "島根スサノオマジック":          LOGO_BASE + "ss.png",
+      "レバンガ北海道":                LOGO_BASE + "lh.png",
+      "シーホース三河":                LOGO_BASE + "sm.png",
+      "三遠ネオフェニックス":          LOGO_BASE + "sn.png",
+      "サンロッカーズ渋谷":            LOGO_BASE + "sr.png",
+      "大阪エヴェッサ":                LOGO_BASE + "oe.png",
+      "神戸ストークス":                LOGO_BASE + "ns.png",
+      "滋賀レイクス":                  LOGO_BASE + "ls.png",
+      "佐賀バルーナーズ":              LOGO_BASE + "sg.png",
+      "広島ドラゴンフライズ":          LOGO_BASE + "hd.png",
+      "千葉ジェッツ":                  LOGO_BASE + "cj.png",
+      "長崎ヴェルカ":                  LOGO_BASE + "nv.png",
+      "アルティーリ千葉":              LOGO_BASE + "ac.png",
+    };
+
+    const teamShort = {
+      "横浜ビー・コルセアーズ":        "横浜BC",
+      "富山グラウジーズ":              "富山",
+      "茨城ロボッツ":                  "茨城",
+      "秋田ノーザンハピネッツ":        "秋田",
+      "仙台89ERS":                     "仙台89",
+      "群馬クレインサンダーズ":        "群馬",
+      "名古屋ダイヤモンドドルフィンズ": "名古屋DD",
+      "信州ブレイブウォリアーズ":      "信州",
+      "川崎ブレイブサンダース":        "川崎",
+      "アルバルク東京":                "A東京",
+      "琉球ゴールデンキングス":        "琉球",
+      "京都ハンナリーズ":              "京都",
+      "島根スサノオマジック":          "島根",
+      "レバンガ北海道":                "北海道",
+      "シーホース三河":                "三河",
+      "三遠ネオフェニックス":          "三遠",
+      "サンロッカーズ渋谷":            "SR渋谷",
+      "大阪エヴェッサ":                "大阪",
+      "神戸ストークス":                "神戸",
+      "滋賀レイクス":                  "滋賀",
+      "佐賀バルーナーズ":              "佐賀",
+      "広島ドラゴンフライズ":          "広島",
+      "千葉ジェッツ":                  "千葉J",
+      "長崎ヴェルカ":                  "長崎",
+      "アルティーリ千葉":              "A千葉",
+    };
+
+    const HOLIDAYS = new Set(["2027/2/11"]);
+
+    function parseCSV(csv) {
+      const lines = csv.trim().split("\n");
+      const headers = lines[0].split(",");
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => obj[h.trim()] = (cols[i] || "").trim());
+        return obj;
+      });
+    }
+
+    function buildCalendar(data) {
+      const gameMap = {};
+      data.forEach(row => {
+        const d = row["日付"];
+        if (!gameMap[d]) gameMap[d] = [];
+        gameMap[d].push(row);
+      });
+
+      const months = [
+        [2026,9],[2026,10],[2026,11],[2026,12],
+        [2027,1],[2027,2],[2027,3],[2027,4],[2027,5]
+      ];
+      const DOW_NAMES = ["月","火","水","木","金","土","日"];
+      const MONTH_NAMES = ["","1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+      // 月ナビ
+      const navHtml = months.map(([y, m]) =>
+        `<a href="#m-${y}-${m}">${y === 2026 ? "" : ""}${MONTH_NAMES[m]}</a>`
+      ).join("");
+      document.getElementById("monthNav").innerHTML = navHtml;
+
+      let html = "";
+
+      months.forEach(([year, month]) => {
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const startDow = (new Date(year, month - 1, 1).getDay() + 6) % 7; // 0=Mon
+
+        let cells = DOW_NAMES.map((name, i) => {
+          const cls = i === 5 ? "cal-header sat" : i === 6 ? "cal-header sun" : "cal-header";
+          return `<div class="${cls}">${name}</div>`;
+        }).join("");
+
+        // 月頭の空白
+        for (let i = 0; i < startDow; i++) {
+          cells += `<div class="cal-cell empty"></div>`;
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${year}/${month}/${d}`;
+          const dow = (startDow + d - 1) % 7;
+          const isSat = dow === 5;
+          const isSun = dow === 6 || HOLIDAYS.has(dateStr);
+          const games = gameMap[dateStr] || [];
+
+          let cls = "cal-cell";
+          if (isSat) cls += " day-sat";
+          if (isSun) cls += " day-sun";
+          if (games.length > 0) cls += " has-game";
+
+          let content = `<div class="cal-date">${d}</div>`;
+          games.forEach(g => {
+            const kubun = g["区分"];
+            const opp = g["対戦相手"];
+            const short = teamShort[opp] || opp;
+            const logo = teamLogos[opp] || "";
+            const badgeCls = kubun === "HOME" ? "home" : "away";
+            content += `<div class="game-item">
+              <span class="badge ${badgeCls}">${kubun}</span>
+              ${logo ? `<img class="team-logo" src="${logo}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}
+              <span class="opp">${short}</span>
+            </div>`;
+          });
+
+          cells += `<div class="${cls}">${content}</div>`;
+        }
+
+        // 月末の空白
+        const total = startDow + daysInMonth;
+        const rem = total % 7;
+        if (rem > 0) {
+          for (let i = 0; i < 7 - rem; i++) {
+            cells += `<div class="cal-cell empty"></div>`;
+          }
+        }
+
+        html += `<div class="month-section" id="m-${year}-${month}">
+          <div class="month-title">${year}年${MONTH_NAMES[month]}</div>
+          <div class="cal-grid">${cells}</div>
+        </div>`;
+      });
+
+      return html;
+    }
+
+    const allData = parseCSV(CSV);
+    document.getElementById("calendar").innerHTML = buildCalendar(allData);
+  </script>
+</body>
+</html>
