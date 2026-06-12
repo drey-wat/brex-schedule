@@ -130,6 +130,7 @@
       background: rgba(255,255,255,0.025);
       border-radius: 8px;
       border: 1px solid transparent;
+      position: relative;
     }
 
     .cal-cell.empty {
@@ -255,6 +256,61 @@
     .modal-memo::placeholder { color: var(--muted); opacity: 0.6; }
     @media (max-width: 640px) { .modal-memo { font-size: 16px; } }
 
+    .going-mark {
+      position: absolute;
+      bottom: 4px;
+      right: 5px;
+      font-size: 14px;
+      line-height: 1;
+      pointer-events: none;
+      color: #12315A;
+    }
+
+    .going-section {
+      display: flex;
+      align-items: center;
+      padding: 12px 0 4px;
+      border-top: 1px solid var(--line);
+      margin-top: 4px;
+    }
+    .going-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      user-select: none;
+    }
+    .going-label input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--line);
+      border-radius: 5px;
+      background: rgba(255,255,255,0.06);
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .going-label input[type="checkbox"]:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .going-label input[type="checkbox"]:checked::after {
+      content: "✓";
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: #0b1020;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
     .modal-row {
       display: flex;
       gap: 10px;
@@ -334,6 +390,12 @@
     <div class="modal" id="modal">
       <button class="modal-close" id="modalClose">×</button>
       <div class="modal-body" id="modalBody"></div>
+      <div class="going-section">
+        <label class="going-label">
+          <input type="checkbox" id="goingCheck">
+          <span>行く</span>
+        </label>
+      </div>
       <div class="memo-section">
         <label class="memo-label" for="memoInput">メモ</label>
         <textarea id="memoInput" class="modal-memo" placeholder="メモを入力..."></textarea>
@@ -566,15 +628,40 @@
     const allData = parseCSV(CSV);
     document.getElementById("calendar").innerHTML = buildCalendar(allData);
 
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("brex-going-")) {
+        addGoingMark(key.replace("brex-going-", ""));
+      }
+    }
+
     // ── モーダル ──
     const DAY_JP = { MON:"月", TUE:"火", WED:"水", THU:"木", FRI:"金", SAT:"土", SUN:"日" };
     const modalOverlay = document.getElementById("modalOverlay");
     const memoInput = document.getElementById("memoInput");
+    const goingCheck = document.getElementById("goingCheck");
     let currentMemoKey = null;
+    let currentDate = null;
 
     function closeModal() {
       modalOverlay.classList.remove("open");
       currentMemoKey = null;
+      currentDate = null;
+    }
+
+    function addGoingMark(date) {
+      const cell = document.querySelector(`[data-date="${date}"]`);
+      if (!cell || cell.querySelector(".going-mark")) return;
+      const el = document.createElement("span");
+      el.className = "going-mark";
+      el.textContent = "★";
+      cell.appendChild(el);
+    }
+
+    function removeGoingMark(date) {
+      const cell = document.querySelector(`[data-date="${date}"]`);
+      const el = cell && cell.querySelector(".going-mark");
+      if (el) el.remove();
     }
 
     document.getElementById("calendar").addEventListener("click", e => {
@@ -610,9 +697,22 @@
           <span class="modal-label">会場</span>
           <span class="modal-value">${venue}</span>
         </div>`;
+      currentDate = date;
       currentMemoKey = `brex-memo-${date}`;
       memoInput.value = localStorage.getItem(currentMemoKey) || "";
+      goingCheck.checked = localStorage.getItem(`brex-going-${date}`) === "1";
       modalOverlay.classList.add("open");
+    });
+
+    goingCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (goingCheck.checked) {
+        localStorage.setItem(`brex-going-${currentDate}`, "1");
+        addGoingMark(currentDate);
+      } else {
+        localStorage.removeItem(`brex-going-${currentDate}`);
+        removeGoingMark(currentDate);
+      }
     });
 
     memoInput.addEventListener("input", () => {
