@@ -192,6 +192,15 @@
     .day-sat { color: #4da3ff; font-weight: 700; }
     .day-sun { color: #ff6b6b; font-weight: 700; }
 
+    .team-logo {
+      height: 28px;
+      width: auto;
+      object-fit: contain;
+      vertical-align: middle;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
     .empty {
       text-align: center;
       padding: 28px;
@@ -461,7 +470,12 @@
         font-size: 15px;
         font-weight: 700;
         margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
+
+      .team-logo { height: 32px; }
 
       /* 会場: 幅いっぱい・小さくミュート */
       .col-venue {
@@ -633,6 +647,35 @@
     const dayJP = { MON: "月", TUE: "火", WED: "水", THU: "木", FRI: "金", SAT: "土", SUN: "日" };
     const dayOrder = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
+    const LOGO_BASE = "https://bleague.bl.kuroco-img.app/files/user/common/img/logo/2025/s/";
+    const teamLogos = {
+      "横浜ビー・コルセアーズ":       LOGO_BASE + "yb.png",
+      "富山グラウジーズ":             LOGO_BASE + "tg.png",
+      "茨城ロボッツ":                 LOGO_BASE + "ir.png",
+      "秋田ノーザンハピネッツ":       LOGO_BASE + "an.png",
+      "仙台89ERS":                    LOGO_BASE + "se.png",
+      "群馬クレインサンダーズ":       LOGO_BASE + "gc.png",
+      "名古屋ダイヤモンドドルフィンズ": LOGO_BASE + "dd.png",
+      "信州ブレイブウォリアーズ":     LOGO_BASE + "bw.png",
+      "川崎ブレイブサンダース":       LOGO_BASE + "kb.png",
+      "アルバルク東京":               LOGO_BASE + "at.png",
+      "琉球ゴールデンキングス":       LOGO_BASE + "rg.png",
+      "京都ハンナリーズ":             LOGO_BASE + "kh.png",
+      "島根スサノオマジック":         LOGO_BASE + "ss.png",
+      "レバンガ北海道":               LOGO_BASE + "lh.png",
+      "シーホース三河":               LOGO_BASE + "sm.png",
+      "三遠ネオフェニックス":         LOGO_BASE + "sn.png",
+      "サンロッカーズ渋谷":           LOGO_BASE + "sr.png",
+      "大阪エヴェッサ":               LOGO_BASE + "oe.png",
+      "神戸ストークス":               LOGO_BASE + "ns.png",
+      "滋賀レイクス":                 LOGO_BASE + "ls.png",
+      "佐賀バルーナーズ":             LOGO_BASE + "sg.png",
+      "広島ドラゴンフライズ":         LOGO_BASE + "hd.png",
+      "千葉ジェッツ":                 LOGO_BASE + "cj.png",
+      "長崎ヴェルカ":                 LOGO_BASE + "nv.png",
+      "アルティーリ千葉":             LOGO_BASE + "ac.png",
+    };
+
     const scheduleBody = document.getElementById("scheduleBody");
     const empty = document.getElementById("empty");
     const resultCount = document.getElementById("resultCount");
@@ -720,7 +763,7 @@
           <td class="col-date">${row["日付"]}</td>
           <td class="col-day ${dayClass}">${day}（${dayJP[day] || "-"}）</td>
           <td class="col-kubun"><span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span></td>
-          <td class="col-opponent">${oppText}</td>
+          <td class="col-opponent">${teamLogos[row["対戦相手"]] ? `<img class="team-logo" src="${teamLogos[row["対戦相手"]]}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}${oppText}</td>
           <td class="col-venue">${venueText}</td>
         `;
         frag.appendChild(tr);
