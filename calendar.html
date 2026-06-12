@@ -402,8 +402,8 @@
             cls += kubun === "HOME" ? " home-cell" : " away-cell";
             const shortLabel = kubun === "HOME" ? "H" : "A";
             content = `<div class="cal-cell-top">
-                <span class="cal-kubun" data-short="${shortLabel}">${kubun}</span>
                 <div class="cal-date">${d}</div>
+                <span class="cal-kubun" data-short="${shortLabel}">${kubun}</span>
               </div>`;
             content += logo
               ? `<img class="team-logo-large" src="${logo}" alt="" loading="lazy" onerror="this.style.display='none'">`
