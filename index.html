@@ -169,11 +169,7 @@
       font-size: 14px;
     }
 
-    tbody tr { transition: background .2s, transform .2s; }
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.08);
-      transform: translateY(-1px);
-    }
+    tbody tr { transition: none; }
 
     .badge {
       display: inline-block;
@@ -431,7 +427,7 @@
         transform: none !important;
       }
 
-      tbody tr:hover { background: rgba(255, 255, 255, 0.09); }
+      tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
 
       tbody td {
         padding: 0;
@@ -763,7 +759,7 @@
           <td class="col-date">${row["日付"]}</td>
           <td class="col-day ${dayClass}">${day}（${dayJP[day] || "-"}）</td>
           <td class="col-kubun"><span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span></td>
-          <td class="col-opponent">${teamLogos[row["対戦相手"]] ? `<img class="team-logo" src="${teamLogos[row["対戦相手"]]}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}${oppText}</td>
+          <td class="col-opponent">${teamLogos[row["対戦相手"]] ? `<img class="team-logo" src="${teamLogos[row["対戦相手"]]}" alt="" loading="lazy" onerror="this.style.display='none'"> ` : ""}${oppText}</td>
           <td class="col-venue">${venueText}</td>
         `;
         frag.appendChild(tr);
