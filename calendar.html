@@ -228,6 +228,32 @@
     }
     .modal-close:hover { color: var(--text); }
 
+    .memo-section { margin-top: 14px; }
+    .memo-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .modal-memo {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 72px;
+      outline: none;
+      transition: border-color 0.15s;
+      box-sizing: border-box;
+    }
+    .modal-memo:focus { border-color: rgba(122,162,255,0.5); }
+    .modal-memo::placeholder { color: var(--muted); opacity: 0.6; }
+
     .modal-row {
       display: flex;
       gap: 10px;
@@ -307,6 +333,10 @@
     <div class="modal" id="modal">
       <button class="modal-close" id="modalClose">×</button>
       <div class="modal-body" id="modalBody"></div>
+      <div class="memo-section">
+        <label class="memo-label" for="memoInput">メモ</label>
+        <textarea id="memoInput" class="modal-memo" placeholder="メモを入力..."></textarea>
+      </div>
     </div>
   </div>
 
@@ -538,8 +568,13 @@
     // ── モーダル ──
     const DAY_JP = { MON:"月", TUE:"火", WED:"水", THU:"木", FRI:"金", SAT:"土", SUN:"日" };
     const modalOverlay = document.getElementById("modalOverlay");
+    const memoInput = document.getElementById("memoInput");
+    let currentMemoKey = null;
 
-    function closeModal() { modalOverlay.classList.remove("open"); }
+    function closeModal() {
+      modalOverlay.classList.remove("open");
+      currentMemoKey = null;
+    }
 
     document.getElementById("calendar").addEventListener("click", e => {
       const cell = e.target.closest("[data-date]");
@@ -574,7 +609,19 @@
           <span class="modal-label">会場</span>
           <span class="modal-value">${venue}</span>
         </div>`;
+      currentMemoKey = `brex-memo-${date}`;
+      memoInput.value = localStorage.getItem(currentMemoKey) || "";
       modalOverlay.classList.add("open");
+    });
+
+    memoInput.addEventListener("input", () => {
+      if (!currentMemoKey) return;
+      const val = memoInput.value;
+      if (val) {
+        localStorage.setItem(currentMemoKey, val);
+      } else {
+        localStorage.removeItem(currentMemoKey);
+      }
     });
 
     document.getElementById("modalClose").addEventListener("click", closeModal);
