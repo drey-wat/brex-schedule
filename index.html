@@ -415,7 +415,7 @@
     .memo-active   { background: rgba(76,175,80,0.15);   color: #4caf50;       border: 1px solid rgba(76,175,80,0.4); }
 
     /* PC 専用列 */
-    .col-going, .col-memo { width: 70px; text-align: center; }
+    .col-going, .col-memo { width: 90px; text-align: center; }
 
 /* スクロールトップボタン */
     .scroll-top {
@@ -603,9 +603,9 @@
 
       .team-logo { height: 32px; }
 
-      /* 会場: 幅いっぱい・小さくミュート */
+      /* 会場: バッジと同じ行に並べる */
       .col-venue {
-        flex: 1 1 100%;
+        flex: 1 1 auto;
         font-size: 12px;
         color: var(--muted);
       }
@@ -615,7 +615,7 @@
         flex: 0 0 auto;
         padding: 0;
         border: none;
-        margin-top: 4px;
+        align-self: center;
       }
       .col-going:empty, .col-memo:empty { display: none; }
 
