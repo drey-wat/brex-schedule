@@ -411,7 +411,7 @@
       padding: 2px 8px; border-radius: 999px;
       font-size: 11px; font-weight: 700; white-space: nowrap;
     }
-    .going-active  { background: rgba(122,162,255,0.15); color: var(--accent); border: 1px solid rgba(122,162,255,0.4); }
+    .going-active  { background: rgba(255,80,80,0.15); color: #ff5252; border: 1px solid rgba(255,80,80,0.4); }
     .memo-active   { background: rgba(76,175,80,0.15);   color: #4caf50;       border: 1px solid rgba(76,175,80,0.4); }
 
     /* PC 専用列 */
@@ -603,21 +603,28 @@
 
       .team-logo { height: 32px; }
 
-      /* 会場: バッジと同じ行に並べる */
+      /* 会場: 独立した行 */
       .col-venue {
-        flex: 1 1 auto;
+        flex: 1 1 100%;
         font-size: 12px;
         color: var(--muted);
       }
 
-      /* 行く・メモあり バッジ（モバイル） */
-      .col-going, .col-memo {
+      /* 行く・メモあり バッジ（モバイル）: 右下寄せ */
+      .col-going {
         flex: 0 0 auto;
         padding: 0;
         border: none;
-        align-self: center;
+        margin-left: auto; /* 右端へ */
+      }
+      .col-memo {
+        flex: 0 0 auto;
+        padding: 0;
+        border: none;
       }
       .col-going:empty, .col-memo:empty { display: none; }
+      /* 行くが非表示のときはメモを右端へ */
+      .col-going:empty + .col-memo { margin-left: auto; }
 
       /* 月見出しをカード間の区切りとして表示 */
       .month-header {
