@@ -32,7 +32,30 @@
     }
 
     .container { max-width: 1320px; margin: 0 auto; }
-    .title { margin: 0 0 16px; font-size: clamp(1.4rem, 2vw, 2rem); }
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .title { margin: 0; font-size: clamp(1.4rem, 2vw, 2rem); }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid rgba(122,162,255,0.4);
+      border-radius: 999px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: rgba(122,162,255,0.12); }
 
     .card {
       background: var(--glass);
@@ -504,7 +527,10 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="title">宇都宮ブレックス2026-2027スケジュール</h1>
+    <div class="title-row">
+      <h1 class="title">宇都宮ブレックス2026-2027スケジュール</h1>
+      <a class="nav-link" href="calendar.html">カレンダー表示 →</a>
+    </div>
 
     <div class="card filters" id="filterCard">
       <button class="filter-header" id="filterToggle" aria-expanded="true">
