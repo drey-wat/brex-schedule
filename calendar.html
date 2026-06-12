@@ -256,14 +256,8 @@
     .modal-memo::placeholder { color: var(--muted); opacity: 0.6; }
     @media (max-width: 640px) { .modal-memo { font-size: 16px; } }
 
-    .going-mark {
-      position: absolute;
-      bottom: 4px;
-      right: 5px;
-      font-size: 14px;
-      line-height: 1;
-      pointer-events: none;
-      color: #12315A;
+    .cal-cell.going-cell {
+      box-shadow: inset 0 0 0 2px #ff4444;
     }
 
     .going-section {
@@ -393,7 +387,7 @@
       <div class="going-section">
         <label class="going-label">
           <input type="checkbox" id="goingCheck">
-          <span>行く</span>
+          <span>行く！</span>
         </label>
       </div>
       <div class="memo-section">
@@ -651,17 +645,12 @@
 
     function addGoingMark(date) {
       const cell = document.querySelector(`[data-date="${date}"]`);
-      if (!cell || cell.querySelector(".going-mark")) return;
-      const el = document.createElement("span");
-      el.className = "going-mark";
-      el.textContent = "★";
-      cell.appendChild(el);
+      if (cell) cell.classList.add("going-cell");
     }
 
     function removeGoingMark(date) {
       const cell = document.querySelector(`[data-date="${date}"]`);
-      const el = cell && cell.querySelector(".going-mark");
-      if (el) el.remove();
+      if (cell) cell.classList.remove("going-cell");
     }
 
     document.getElementById("calendar").addEventListener("click", e => {
