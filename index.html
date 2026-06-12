@@ -206,6 +206,7 @@
     }
 
     tbody tr { transition: none; cursor: pointer; }
+    .month-header { cursor: default; }
 
     .badge {
       display: inline-block;
@@ -551,7 +552,7 @@
         margin-bottom: 8px;
         border-radius: 12px;
         border: 1px solid var(--line);
-        padding: 12px 14px;
+        padding: 12px 8px 12px 14px;
         background: rgba(255, 255, 255, 0.05);
         transform: none !important;
         cursor: pointer;
@@ -603,19 +604,22 @@
 
       .team-logo { height: 32px; }
 
-      /* 会場: 独立した行 */
+      /* 会場: 会場＋バッジを同一行に収める */
       .col-venue {
-        flex: 1 1 100%;
+        flex: 1 1 auto;
+        min-width: 0;
         font-size: 12px;
         color: var(--muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      /* 行く・メモあり バッジ（モバイル）: 右下寄せ */
+      /* 行く・メモあり バッジ（モバイル）: 会場の右に配置 */
       .col-going {
         flex: 0 0 auto;
         padding: 0;
         border: none;
-        margin-left: auto; /* 右端へ */
       }
       .col-memo {
         flex: 0 0 auto;
@@ -623,8 +627,6 @@
         border: none;
       }
       .col-going:empty, .col-memo:empty { display: none; }
-      /* 行くが非表示のときはメモを右端へ */
-      .col-going:empty + .col-memo { margin-left: auto; }
 
       /* 月見出しをカード間の区切りとして表示 */
       .month-header {
