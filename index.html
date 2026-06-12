@@ -689,6 +689,11 @@
       filterToggle.setAttribute("aria-expanded", String(!collapsed));
     });
 
+    if (window.innerWidth <= 640) {
+      filterCard.classList.add("is-collapsed");
+      filterToggle.setAttribute("aria-expanded", "false");
+    }
+
     initDayOptions(allData);
     renderTable(allData);
   </script>
