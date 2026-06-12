@@ -757,7 +757,7 @@
 
         const day = row["曜日"];
         const kubun = row["区分"];
-        const dayClass = day === "SAT" ? "day-sat" : day === "SUN" ? "day-sun" : "";
+        const dayClass = day === "SAT" ? "day-sat" : (day === "SUN" || row["日付"] === "2027/2/11") ? "day-sun" : "";
         const oppText = highlight(row["対戦相手"], opponentKey);
         const venueText = highlight(row["会場"], venueKey);
 
