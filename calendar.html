@@ -17,6 +17,13 @@
 
     * { box-sizing: border-box; }
 
+    html {
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
+        radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+    }
+
     body {
       margin: 0;
       color: var(--text);
@@ -165,6 +172,23 @@
       font-size: 12px;
       font-weight: 600;
       color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .memo-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #4caf50;
+      flex-shrink: 0;
+      animation: memoDotPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes memoDotPulse {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.9; }
     }
     .cal-cell.day-sat .cal-date { color: #4da3ff; }
     .cal-cell.day-sun .cal-date { color: #ff6b6b; }
@@ -626,8 +650,10 @@
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith("brex-going-")) {
-        addGoingMark(key.replace("brex-going-", ""));
+      if (!key) continue;
+      if (key.startsWith("brex-going-")) addGoingMark(key.replace("brex-going-", ""));
+      if (key.startsWith("brex-memo-") && localStorage.getItem(key)) {
+        addMemoDot(key.replace("brex-memo-", ""));
       }
     }
 
@@ -667,6 +693,22 @@
     function removeGoingMark(date) {
       const cell = document.querySelector(`[data-date="${date}"]`);
       if (cell) cell.classList.remove("going-cell");
+    }
+
+    function addMemoDot(date) {
+      const cell = document.querySelector(`[data-date="${date}"]`);
+      if (!cell || cell.querySelector(".memo-dot")) return;
+      const dateEl = cell.querySelector(".cal-date");
+      if (!dateEl) return;
+      const dot = document.createElement("span");
+      dot.className = "memo-dot";
+      dateEl.appendChild(dot);
+    }
+
+    function removeMemoDot(date) {
+      const cell = document.querySelector(`[data-date="${date}"]`);
+      const dot = cell && cell.querySelector(".memo-dot");
+      if (dot) dot.remove();
     }
 
     document.getElementById("calendar").addEventListener("click", e => {
@@ -725,8 +767,10 @@
       const val = memoInput.value;
       if (val) {
         localStorage.setItem(currentMemoKey, val);
+        addMemoDot(currentDate);
       } else {
         localStorage.removeItem(currentMemoKey);
+        removeMemoDot(currentDate);
       }
     });
 
