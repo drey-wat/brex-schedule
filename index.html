@@ -338,6 +338,9 @@
     @media (max-width: 640px) {
       body { padding: 16px 10px; }
 
+      /* 入力欄16px未満だとiOSが自動ズームするため16pxに固定 */
+      input, select { font-size: 16px; }
+
       /* フィルターカードを縦積みに */
       .filters { display: flex; flex-direction: column; padding: 0; }
 
