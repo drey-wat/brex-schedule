@@ -22,6 +22,7 @@
         radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
         radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
+      background-color: #0b1020;
     }
 
     body {
@@ -645,6 +646,8 @@
       return html;
     }
 
+    const PAGE_LOAD_TIME = Date.now();
+
     const allData = parseCSV(CSV);
     document.getElementById("calendar").innerHTML = buildCalendar(allData);
 
@@ -702,6 +705,7 @@
       if (!dateEl) return;
       const dot = document.createElement("span");
       dot.className = "memo-dot";
+      dot.style.animationDelay = `-${(Date.now() - PAGE_LOAD_TIME) % 2000}ms`;
       dateEl.appendChild(dot);
     }
 
