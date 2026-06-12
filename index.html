@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宇都宮ブレックス2026-2027</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #111a33;
+      --glass: rgba(255, 255, 255, 0.08);
+      --text: #eaf0ff;
+      --muted: #a7b0ca;
+      --line: rgba(255, 255, 255, 0.16);
+      --accent: #7aa2ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
+        radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      padding: 28px 14px;
+    }
+
+    .container { max-width: 1320px; margin: 0 auto; }
+    .title { margin: 0 0 16px; font-size: clamp(1.4rem, 2vw, 2rem); }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    .filters {
+      padding: 14px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .input-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+    .input-wrap label {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+    }
+
+    input, select, button {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f5f8ff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input::placeholder { color: #c3cbe2; opacity: .9; }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.26);
+    }
+
+    select {
+      background: rgba(10, 18, 36, 0.95);
+      color: #f5f8ff;
+      font-weight: 600;
+    }
+
+    select option {
+      background-color: #0f1b36;
+      color: #f5f8ff;
+    }
+
+    .check-wrap {
+      justify-content: end;
+    }
+
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #f5f8ff;
+      font-weight: 600;
+      line-height: 1.4;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: rgba(10, 18, 36, 0.95);
+    }
+
+    .check-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #7aa2ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .actions { display: flex; align-items: end; }
+
+    .btn {
+      width: 100%;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.14);
+      transform: translateY(-1px);
+    }
+
+    /* デスクトップではトグルバー非表示 */
+    .filter-header { display: none; }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 8px 4px 10px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .table-wrap { overflow: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: rgba(8, 14, 30, 0.92);
+      z-index: 1;
+      text-align: left;
+      font-size: 13px;
+      color: #c8d3f8;
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      letter-spacing: .03em;
+    }
+
+    tbody td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 14px;
+    }
+
+    tbody tr { transition: background .2s, transform .2s; }
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .badge {
+      display: inline-block;
+      min-width: 62px;
+      text-align: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .home { background: linear-gradient(135deg, #14b88a, #17a676); }
+    .away { background: linear-gradient(135deg, #ff5f78, #ff4545); }
+
+    .day-sat { color: #4da3ff; font-weight: 700; }
+    .day-sun { color: #ff6b6b; font-weight: 700; }
+
+    .empty {
+      text-align: center;
+      padding: 28px;
+      color: var(--muted);
+      display: none;
+    }
+
+    /* flatpickr dark */
+    .flatpickr-calendar {
+      background: #0f1b36;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .flatpickr-months .flatpickr-month,
+    .flatpickr-weekdays,
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year,
+    .flatpickr-day,
+    span.flatpickr-weekday {
+      color: #f5f8ff;
+    }
+
+    .flatpickr-current-month .flatpickr-monthDropdown-months {
+      background: #0f1b36;
+      font-weight: 600;
+    }
+
+    .flatpickr-current-month input.cur-year { font-weight: 600; }
+
+    .flatpickr-prev-month svg,
+    .flatpickr-next-month svg { fill: #f5f8ff; }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+      background: #7aa2ff;
+      border-color: #7aa2ff;
+      color: #0b1020;
+    }
+
+    .flatpickr-day.today { border-color: #7aa2ff; }
+
+    .flatpickr-day.flatpickr-disabled,
+    .flatpickr-day.flatpickr-disabled:hover {
+      color: rgba(245, 248, 255, 0.28);
+    }
+
+    /* デスクトップ: filter-body を透過させてグリッドに参加させる */
+    @media (min-width: 641px) {
+      .filter-body { display: contents; }
+    }
+
+    /* ── レスポンシブ (breakpoints) ── */
+    @media (max-width: 1320px) {
+      .filters { grid-template-columns: repeat(4, minmax(140px, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .filters { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .filters { grid-template-columns: 1fr; }
+    }
+
+    /* ── モバイル: カードレイアウト ── */
+    @media (max-width: 640px) {
+      body { padding: 16px 10px; }
+
+      /* フィルターカードを縦積みに */
+      .filters { display: flex; flex-direction: column; padding: 0; }
+
+      /* トグルバー */
+      .filter-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        background: none;
+        border: none;
+        border-radius: 16px;
+        padding: 14px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .filter-header:hover { background: rgba(255,255,255,0.06); }
+
+      /* アクティブフィルター数バッジ */
+      .filter-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent);
+        color: #0b1020;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 999px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+      }
+      .filter-badge:empty { display: none; }
+
+      /* 矢印 */
+      .filter-chevron { margin-left: auto; transition: transform 0.25s ease; font-style: normal; }
+      .filters.is-collapsed .filter-chevron { transform: rotate(-90deg); }
+
+      /* 入力欄ラッパー: アコーディオン */
+      .filter-body {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 0 14px 14px;
+        overflow: hidden;
+        max-height: 700px;
+        opacity: 1;
+        transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+      }
+
+      /* 折りたたみ時 */
+      .filters.is-collapsed .filter-body {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+
+      .table-wrap { padding: 8px; overflow: visible; }
+
+      table { min-width: unset; }
+      thead { display: none; }
+
+      tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 8px;
+        row-gap: 4px;
+        margin-bottom: 8px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        transform: none !important;
+      }
+
+      tbody tr:hover { background: rgba(255, 255, 255, 0.09); }
+
+      tbody td {
+        padding: 0;
+        border: none;
+        font-size: 13px;
+      }
+
+      /* 左上: 日付 */
+      .col-date {
+        flex: 0 0 auto;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* 日付の隣: 曜日 */
+      .col-day {
+        flex: 1 0 auto;
+        font-size: 12px;
+      }
+
+      /* 右上: HOME/AWAYバッジ */
+      .col-kubun {
+        flex: 0 0 auto;
+        margin-left: auto;
+      }
+
+      .col-kubun .badge {
+        font-size: 11px;
+        padding: 3px 8px;
+        min-width: 50px;
+      }
+
+      /* 対戦相手: 幅いっぱい・大きく */
+      .col-opponent {
+        flex: 1 1 100%;
+        font-size: 15px;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+
+      /* 会場: 幅いっぱい・小さくミュート */
+      .col-venue {
+        flex: 1 1 100%;
+        font-size: 12px;
+        color: var(--muted);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">宇都宮ブレックス2026-2027スケジュール</h1>
+
+    <div class="card filters" id="filterCard">
+      <button class="filter-header" id="filterToggle" aria-expanded="true">
+        <span>絞り込み</span>
+        <span class="filter-badge" id="filterBadge"></span>
+        <span class="filter-chevron">▾</span>
+      </button>
+      <div class="filter-body">
+        <div class="input-wrap">
+          <label for="dateFilter">日付</label>
+          <input id="dateFilter" type="text" placeholder="日付を選択" />
+        </div>
+
+        <div class="input-wrap">
+          <label for="dayFilter">曜日</label>
+          <select id="dayFilter">
+            <option value="">すべて</option>
+          </select>
+        </div>
+
+        <div class="input-wrap">
+          <label for="kubunFilter">区分</label>
+          <select id="kubunFilter">
+            <option value="">すべて</option>
+            <option value="HOME">HOME</option>
+            <option value="AWAY">AWAY</option>
+          </select>
+        </div>
+
+        <div class="input-wrap">
+          <label for="opponentFilter">対戦相手</label>
+          <input id="opponentFilter" type="text" placeholder="チーム名で検索" />
+        </div>
+
+        <div class="input-wrap">
+          <label for="venueFilter">会場</label>
+          <input id="venueFilter" type="text" placeholder="会場名で検索" />
+        </div>
+
+        <div class="input-wrap check-wrap">
+          <label for="seriesOnly">連戦</label>
+          <label class="check-label">
+            <input id="seriesOnly" type="checkbox" />
+            同一カード連戦のみ
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="resetBtn" class="btn">リセット</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span id="resultCount">0 件</span>
+      <span>日付・曜日・区分・対戦相手・会場・連戦で絞り込み</span>
+    </div>
+
+    <div class="card table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>曜日</th>
+            <th>区分</th>
+            <th>対戦相手</th>
+            <th>会場</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+      <div id="empty" class="empty">該当する試合がありません。</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    const csvData = `日付,曜日,区分,対戦相手,会場
+2026/9/26,SAT,HOME,横浜ビー・コルセアーズ,日環アリーナ栃木
+2026/9/27,SUN,HOME,横浜ビー・コルセアーズ,日環アリーナ栃木
+2026/10/3,SAT,AWAY,富山グラウジーズ,YKK APアリーナ
+2026/10/4,SUN,AWAY,富山グラウジーズ,YKK APアリーナ
+2026/10/9,FRI,AWAY,茨城ロボッツ,アダストリアみとアリーナ
+2026/10/11,SUN,HOME,秋田ノーザンハピネッツ,ブレックスアリーナ宇都宮
+2026/10/17,SAT,AWAY,仙台89ERS,ゼビオアリーナ仙台
+2026/10/19,MON,HOME,群馬クレインサンダーズ,ブレックスアリーナ宇都宮
+2026/10/21,WED,HOME,名古屋ダイヤモンドドルフィンズ,ブレックスアリーナ宇都宮
+2026/10/24,SAT,HOME,信州ブレイブウォリアーズ,ブレックスアリーナ宇都宮
+2026/10/26,MON,HOME,川崎ブレイブサンダース,ブレックスアリーナ宇都宮
+2026/10/31,SAT,AWAY,アルバルク東京,TOYOTA ARENA TOKYO
+2026/11/1,SUN,AWAY,アルバルク東京,TOYOTA ARENA TOKYO
+2026/11/7,SAT,HOME,琉球ゴールデンキングス,ブレックスアリーナ宇都宮
+2026/11/11,WED,HOME,京都ハンナリーズ,ブレックスアリーナ宇都宮
+2026/11/15,SUN,AWAY,島根スサノオマジック,松江市総合体育館
+2026/11/18,WED,HOME,レバンガ北海道,ブレックスアリーナ宇都宮
+2026/12/4,FRI,AWAY,シーホース三河,ウィングアリーナ刈谷
+2026/12/6,SUN,HOME,三遠ネオフェニックス,ブレックスアリーナ宇都宮
+2026/12/12,SAT,HOME,サンロッカーズ渋谷,日環アリーナ栃木
+2026/12/13,SUN,HOME,サンロッカーズ渋谷,日環アリーナ栃木
+2026/12/16,WED,AWAY,琉球ゴールデンキングス,沖縄サントリーアリーナ
+2026/12/18,FRI,AWAY,大阪エヴェッサ,おおきにアリーナ舞洲
+2026/12/20,SUN,AWAY,大阪エヴェッサ,おおきにアリーナ舞洲
+2026/12/25,FRI,HOME,神戸ストークス,ブレックスアリーナ宇都宮
+2026/12/27,SUN,HOME,神戸ストークス,ブレックスアリーナ宇都宮
+2027/1/2,SAT,AWAY,レバンガ北海道,北海きたえーる
+2027/1/3,SUN,AWAY,レバンガ北海道,北海きたえーる
+2027/1/22,FRI,AWAY,京都ハンナリーズ,京都市体育館
+2027/1/24,SUN,AWAY,佐賀バルーナーズ,SAGAアリーナ
+2027/1/27,WED,HOME,滋賀レイクス,ブレックスアリーナ宇都宮
+2027/1/30,SAT,AWAY,川崎ブレイブサンダース,東急ドレッセとどろきアリーナ
+2027/1/31,SUN,AWAY,川崎ブレイブサンダース,東急ドレッセとどろきアリーナ
+2027/2/3,WED,AWAY,名古屋ダイヤモンドドルフィンズ,IGアリーナ
+2027/2/6,SAT,HOME,仙台89ERS,ブレックスアリーナ宇都宮
+2027/2/7,SUN,HOME,仙台89ERS,ブレックスアリーナ宇都宮
+2027/2/11,THU,HOME,三遠ネオフェニックス,ブレックスアリーナ宇都宮
+2027/2/13,SAT,AWAY,滋賀レイクス,滋賀ダイハツアリーナ
+2027/2/16,TUE,AWAY,広島ドラゴンフライズ,広島グリーンアリーナ
+2027/3/5,FRI,HOME,千葉ジェッツ,日環アリーナ栃木
+2027/3/7,SUN,HOME,千葉ジェッツ,日環アリーナ栃木
+2027/3/10,WED,AWAY,シーホース三河,スカイホール豊田
+2027/3/12,FRI,AWAY,群馬クレインサンダーズ,オープンハウスアリーナ太田
+2027/3/14,SUN,AWAY,群馬クレインサンダーズ,オープンハウスアリーナ太田
+2027/3/17,WED,HOME,富山グラウジーズ,ブレックスアリーナ宇都宮
+2027/3/20,SAT,HOME,茨城ロボッツ,ブレックスアリーナ宇都宮
+2027/3/21,SUN,HOME,茨城ロボッツ,ブレックスアリーナ宇都宮
+2027/3/24,WED,HOME,長崎ヴェルカ,ブレックスアリーナ宇都宮
+2027/3/31,WED,AWAY,佐賀バルーナーズ,SAGAアリーナ
+2027/4/3,SAT,HOME,広島ドラゴンフライズ,調整中
+2027/4/7,WED,HOME,アルバルク東京,調整中
+2027/4/10,SAT,HOME,アルティーリ千葉,調整中
+2027/4/11,SUN,HOME,アルティーリ千葉,調整中
+2027/4/14,WED,AWAY,横浜ビー・コルセアーズ,横浜BUNTAI
+2027/4/21,WED,AWAY,千葉ジェッツ,LaLa arena TOKYO-BAY
+2027/4/24,SAT,AWAY,秋田ノーザンハピネッツ,CNAアリーナあきた
+2027/4/25,SUN,AWAY,秋田ノーザンハピネッツ,CNAアリーナあきた
+2027/4/28,WED,AWAY,サンロッカーズ渋谷,TOYOTA ARENA TOKYO
+2027/4/30,FRI,HOME,長崎ヴェルカ,調整中
+2027/5/2,SUN,AWAY,アルティーリ千葉,千葉ポートアリーナ`;
+
+    const dayJP = { MON: "月", TUE: "火", WED: "水", THU: "木", FRI: "金", SAT: "土", SUN: "日" };
+    const dayOrder = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+
+    const scheduleBody = document.getElementById("scheduleBody");
+    const empty = document.getElementById("empty");
+    const resultCount = document.getElementById("resultCount");
+
+    const dateFilter = document.getElementById("dateFilter");
+    const dayFilter = document.getElementById("dayFilter");
+    const kubunFilter = document.getElementById("kubunFilter");
+    const opponentFilter = document.getElementById("opponentFilter");
+    const venueFilter = document.getElementById("venueFilter");
+    const seriesOnly = document.getElementById("seriesOnly");
+    const resetBtn = document.getElementById("resetBtn");
+    const filterCard = document.getElementById("filterCard");
+    const filterToggle = document.getElementById("filterToggle");
+    const filterBadge = document.getElementById("filterBadge");
+
+    function parseCSV(csv) {
+      const lines = csv.trim().split("\n");
+      const headers = lines[0].split(",");
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => (obj[h.trim()] = (cols[i] || "").trim()));
+        return obj;
+      });
+    }
+
+    function toInputDate(dateStr) {
+      const [y, m, d] = dateStr.split("/").map(Number);
+      return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    }
+
+    function initDayOptions(data) {
+      const exists = new Set(data.map(d => d["曜日"]));
+      dayOrder.forEach(day => {
+        if (!exists.has(day)) return;
+        const option = document.createElement("option");
+        option.value = day;
+        option.textContent = `${day}（${dayJP[day] || day}）`;
+        dayFilter.appendChild(option);
+      });
+    }
+
+    function renderTable(data) {
+      scheduleBody.innerHTML = "";
+      resultCount.textContent = `${data.length} 件`;
+
+      if (!data.length) {
+        empty.style.display = "block";
+        return;
+      }
+      empty.style.display = "none";
+
+      const frag = document.createDocumentFragment();
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        const day = row["曜日"];
+        const kubun = row["区分"];
+        const dayClass = day === "SAT" ? "day-sat" : day === "SUN" ? "day-sun" : "";
+
+        tr.innerHTML = `
+          <td class="col-date">${row["日付"]}</td>
+          <td class="col-day ${dayClass}">${day}（${dayJP[day] || "-"}）</td>
+          <td class="col-kubun"><span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span></td>
+          <td class="col-opponent">${row["対戦相手"]}</td>
+          <td class="col-venue">${row["会場"]}</td>
+        `;
+        frag.appendChild(tr);
+      });
+
+      scheduleBody.appendChild(frag);
+    }
+
+    const allData = parseCSV(csvData);
+
+    allData.forEach((row, i) => {
+      const prev = allData[i - 1];
+      const next = allData[i + 1];
+      row.__isConsecutiveOpponent =
+        (prev && prev["対戦相手"] === row["対戦相手"]) ||
+        (next && next["対戦相手"] === row["対戦相手"]);
+    });
+
+    const enabledDates = [...new Set(allData.map(row => toInputDate(row["日付"])))];
+
+    function updateFilterBadge() {
+      const count = [
+        dateFilter.value,
+        dayFilter.value,
+        kubunFilter.value,
+        opponentFilter.value,
+        venueFilter.value,
+      ].filter(Boolean).length + (seriesOnly.checked ? 1 : 0);
+      filterBadge.textContent = count > 0 ? String(count) : "";
+    }
+
+    function applyFilter() {
+      const dateKey = dateFilter.value;
+      const dayKey = dayFilter.value.trim();
+      const kubunKey = kubunFilter.value.trim();
+      const opponentKey = opponentFilter.value.trim().toLowerCase();
+      const venueKey = venueFilter.value.trim().toLowerCase();
+      const seriesOnlyKey = seriesOnly.checked;
+
+      const filtered = allData.filter(row => {
+        const okDate = !dateKey || toInputDate(row["日付"]) === dateKey;
+        const okDay = !dayKey || row["曜日"] === dayKey;
+        const okKubun = !kubunKey || row["区分"] === kubunKey;
+        const okOpp = !opponentKey || row["対戦相手"].toLowerCase().includes(opponentKey);
+        const okVenue = !venueKey || row["会場"].toLowerCase().includes(venueKey);
+        const okSeries = !seriesOnlyKey || row.__isConsecutiveOpponent;
+        return okDate && okDay && okKubun && okOpp && okVenue && okSeries;
+      });
+
+      renderTable(filtered);
+      updateFilterBadge();
+    }
+
+    const fp = flatpickr("#dateFilter", {
+      dateFormat: "Y-m-d",
+      enable: enabledDates,
+      allowInput: false,
+      disableMobile: true,
+      onChange: applyFilter
+    });
+
+    [dayFilter, kubunFilter, opponentFilter, venueFilter].forEach(el => {
+      el.addEventListener("change", applyFilter);
+      el.addEventListener("input", applyFilter);
+      el.addEventListener("keydown", e => {
+        if (e.key === "Enter") applyFilter();
+      });
+    });
+
+    seriesOnly.addEventListener("change", applyFilter);
+
+    resetBtn.addEventListener("click", () => {
+      fp.clear();
+      dayFilter.value = "";
+      kubunFilter.value = "";
+      opponentFilter.value = "";
+      venueFilter.value = "";
+      seriesOnly.checked = false;
+      renderTable(allData);
+      updateFilterBadge();
+    });
+
+    filterToggle.addEventListener("click", () => {
+      const collapsed = filterCard.classList.toggle("is-collapsed");
+      filterToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+
+    initDayOptions(allData);
+    renderTable(allData);
+  </script>
+</body>
+</html>
