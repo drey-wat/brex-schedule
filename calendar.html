@@ -213,6 +213,8 @@
       border-radius: 16px;
       padding: 28px 24px 24px;
       width: min(400px, 90vw);
+      max-height: min(90svh, 90vh);
+      overflow-y: auto;
       position: relative;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       transform: translateY(12px);
@@ -637,7 +639,21 @@
     let currentMemoKey = null;
     let currentDate = null;
 
+    function openModal() {
+      const scrollY = window.scrollY;
+      document.body.dataset.scrollY = scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      modalOverlay.classList.add("open");
+    }
+
     function closeModal() {
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
       modalOverlay.classList.remove("open");
       currentMemoKey = null;
       currentDate = null;
@@ -690,7 +706,7 @@
       currentMemoKey = `brex-memo-${date}`;
       memoInput.value = localStorage.getItem(currentMemoKey) || "";
       goingCheck.checked = localStorage.getItem(`brex-going-${date}`) === "1";
-      modalOverlay.classList.add("open");
+      openModal();
     });
 
     goingCheck.addEventListener("change", () => {
