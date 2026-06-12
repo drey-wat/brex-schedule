@@ -240,6 +240,110 @@
       color: rgba(245, 248, 255, 0.28);
     }
 
+    /* 月見出し */
+    .month-header td {
+      padding: 20px 12px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      border: none;
+    }
+
+    /* 直近試合マーカー */
+    .next-marker td {
+      padding: 4px 12px 2px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      border: none;
+    }
+
+    /* 直近試合ハイライト行 */
+    tbody tr.is-next {
+      background: rgba(122, 162, 255, 0.1) !important;
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    /* 検索マッチハイライト */
+    mark.hl {
+      background: rgba(255, 212, 0, 0.3);
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 1px;
+      font-style: normal;
+    }
+
+    /* アクティブフィルターチップ */
+    .active-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0 4px 10px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(122, 162, 255, 0.15);
+      border: 1px solid rgba(122, 162, 255, 0.5);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      width: auto;
+      transition: background 0.15s;
+    }
+
+    .chip:hover { background: rgba(122, 162, 255, 0.3); transform: none; }
+
+    /* iCalボタン */
+    .btn-ical {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      width: auto;
+      transition: .2s;
+    }
+
+    .btn-ical:hover { background: rgba(255,255,255,0.14); transform: none; }
+
+    /* スクロールトップボタン */
+    .scroll-top {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0b1020;
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    .scroll-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
     /* デスクトップ: filter-body を透過させてグリッドに参加させる */
     @media (min-width: 641px) {
       .filter-body { display: contents; }
@@ -390,6 +494,20 @@
         font-size: 12px;
         color: var(--muted);
       }
+
+      /* 月見出し・直近マーカーをカード間の区切りとして表示 */
+      .month-header, .next-marker {
+        display: block !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin-bottom: 0 !important;
+        background: transparent !important;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+      .month-header td { display: block; padding: 16px 4px 2px; border: none; }
+      .next-marker td { display: block; padding: 6px 4px 0; border: none; }
     }
   </style>
 </head>
@@ -451,8 +569,10 @@
 
     <div class="meta">
       <span id="resultCount">0 件</span>
-      <span>日付・曜日・区分・対戦相手・会場・連戦で絞り込み</span>
+      <button id="icalBtn" class="btn-ical">📅 カレンダーに追加</button>
     </div>
+
+    <div id="activeChips" class="active-chips"></div>
 
     <div class="card table-wrap">
       <table>
@@ -470,6 +590,8 @@
       <div id="empty" class="empty">該当する試合がありません。</div>
     </div>
   </div>
+
+  <button id="scrollTopBtn" class="scroll-top" aria-label="トップへ戻る">↑</button>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
@@ -552,6 +674,9 @@
     const filterCard = document.getElementById("filterCard");
     const filterToggle = document.getElementById("filterToggle");
     const filterBadge = document.getElementById("filterBadge");
+    const activeChips = document.getElementById("activeChips");
+    const icalBtn = document.getElementById("icalBtn");
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
 
     function parseCSV(csv) {
       const lines = csv.trim().split("\n");
@@ -580,7 +705,13 @@
       });
     }
 
-    function renderTable(data) {
+    function highlight(text, query) {
+      if (!query) return text;
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="hl">$1</mark>');
+    }
+
+    function renderTable(data, opponentKey = "", venueKey = "") {
       scheduleBody.innerHTML = "";
       resultCount.textContent = `${data.length} 件`;
 
@@ -590,25 +721,106 @@
       }
       empty.style.display = "none";
 
-      const frag = document.createDocumentFragment();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let nextIdx = -1;
+      for (let i = 0; i < data.length; i++) {
+        const [y, m, d] = data[i]["日付"].split("/").map(Number);
+        if (new Date(y, m - 1, d) >= today) { nextIdx = i; break; }
+      }
 
-      data.forEach(row => {
+      const frag = document.createDocumentFragment();
+      let currentMonth = null;
+
+      data.forEach((row, i) => {
+        const [y, m] = row["日付"].split("/").map(Number);
+        const monthKey = `${y}/${m}`;
+
+        if (monthKey !== currentMonth) {
+          currentMonth = monthKey;
+          const mtr = document.createElement("tr");
+          mtr.className = "month-header";
+          mtr.innerHTML = `<td colspan="5">${y}年${m}月</td>`;
+          frag.appendChild(mtr);
+        }
+
+        if (i === nextIdx) {
+          const ntr = document.createElement("tr");
+          ntr.className = "next-marker";
+          ntr.innerHTML = `<td colspan="5">▼ 次の試合</td>`;
+          frag.appendChild(ntr);
+        }
+
         const tr = document.createElement("tr");
+        if (i === nextIdx) tr.classList.add("is-next");
+
         const day = row["曜日"];
         const kubun = row["区分"];
         const dayClass = day === "SAT" ? "day-sat" : day === "SUN" ? "day-sun" : "";
+        const oppText = highlight(row["対戦相手"], opponentKey);
+        const venueText = highlight(row["会場"], venueKey);
 
         tr.innerHTML = `
           <td class="col-date">${row["日付"]}</td>
           <td class="col-day ${dayClass}">${day}（${dayJP[day] || "-"}）</td>
           <td class="col-kubun"><span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span></td>
-          <td class="col-opponent">${row["対戦相手"]}</td>
-          <td class="col-venue">${row["会場"]}</td>
+          <td class="col-opponent">${oppText}</td>
+          <td class="col-venue">${venueText}</td>
         `;
         frag.appendChild(tr);
       });
 
       scheduleBody.appendChild(frag);
+    }
+
+    function updateChips() {
+      const chips = [];
+      if (dateFilter.value) chips.push({ key: "date", label: `日付: ${dateFilter.value}` });
+      if (dayFilter.value) chips.push({ key: "day", label: `曜日: ${dayFilter.value}（${dayJP[dayFilter.value] || dayFilter.value}）` });
+      if (kubunFilter.value) chips.push({ key: "kubun", label: kubunFilter.value });
+      if (opponentFilter.value) chips.push({ key: "opponent", label: `相手: ${opponentFilter.value}` });
+      if (venueFilter.value) chips.push({ key: "venue", label: `会場: ${venueFilter.value}` });
+      if (seriesOnly.checked) chips.push({ key: "series", label: "連戦のみ" });
+      activeChips.innerHTML = chips.map(c =>
+        `<button class="chip" data-key="${c.key}">${c.label} ×</button>`
+      ).join("");
+    }
+
+    function exportICal(data) {
+      const pad = n => String(n).padStart(2, "0");
+      const lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//宇都宮ブレックス スケジュール//JP",
+        "CALSCALE:GREGORIAN",
+        "X-WR-CALNAME:宇都宮ブレックス 2026-2027",
+        "X-WR-TIMEZONE:Asia/Tokyo",
+      ];
+      data.forEach((row, i) => {
+        const [y, m, d] = row["日付"].split("/").map(Number);
+        const dateStr = `${y}${pad(m)}${pad(d)}`;
+        const next = new Date(y, m - 1, d + 1);
+        const nextStr = `${next.getFullYear()}${pad(next.getMonth() + 1)}${pad(next.getDate())}`;
+        lines.push(
+          "BEGIN:VEVENT",
+          `DTSTART;VALUE=DATE:${dateStr}`,
+          `DTEND;VALUE=DATE:${nextStr}`,
+          `SUMMARY:【${row["区分"]}】vs ${row["対戦相手"]}`,
+          `LOCATION:${row["会場"]}`,
+          `UID:brex-${dateStr}-${i}@brex-schedule`,
+          "END:VEVENT"
+        );
+      });
+      lines.push("END:VCALENDAR");
+      const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "brex-schedule.ics";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     const allData = parseCSV(csvData);
@@ -622,6 +834,7 @@
     });
 
     const enabledDates = [...new Set(allData.map(row => toInputDate(row["日付"])))];
+    let currentFiltered = allData;
 
     function updateFilterBadge() {
       const count = [
@@ -642,7 +855,7 @@
       const venueKey = venueFilter.value.trim().toLowerCase();
       const seriesOnlyKey = seriesOnly.checked;
 
-      const filtered = allData.filter(row => {
+      currentFiltered = allData.filter(row => {
         const okDate = !dateKey || toInputDate(row["日付"]) === dateKey;
         const okDay = !dayKey || row["曜日"] === dayKey;
         const okKubun = !kubunKey || row["区分"] === kubunKey;
@@ -652,8 +865,9 @@
         return okDate && okDay && okKubun && okOpp && okVenue && okSeries;
       });
 
-      renderTable(filtered);
+      renderTable(currentFiltered, opponentKey, venueKey);
       updateFilterBadge();
+      updateChips();
     }
 
     const fp = flatpickr("#dateFilter", {
@@ -681,13 +895,38 @@
       opponentFilter.value = "";
       venueFilter.value = "";
       seriesOnly.checked = false;
+      currentFiltered = allData;
       renderTable(allData);
       updateFilterBadge();
+      updateChips();
+    });
+
+    icalBtn.addEventListener("click", () => exportICal(currentFiltered));
+
+    activeChips.addEventListener("click", e => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      const key = btn.dataset.key;
+      if (key === "date") fp.clear();
+      else if (key === "day") dayFilter.value = "";
+      else if (key === "kubun") kubunFilter.value = "";
+      else if (key === "opponent") opponentFilter.value = "";
+      else if (key === "venue") venueFilter.value = "";
+      else if (key === "series") seriesOnly.checked = false;
+      applyFilter();
     });
 
     filterToggle.addEventListener("click", () => {
       const collapsed = filterCard.classList.toggle("is-collapsed");
       filterToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+
+    window.addEventListener("scroll", () => {
+      scrollTopBtn.classList.toggle("visible", window.scrollY > 300);
+    }, { passive: true });
+
+    scrollTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     if (window.innerWidth <= 640) {
@@ -697,6 +936,7 @@
 
     initDayOptions(allData);
     renderTable(allData);
+    updateChips();
   </script>
 </body>
 </html>
