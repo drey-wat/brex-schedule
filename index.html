@@ -18,6 +18,14 @@
 
     * { box-sizing: border-box; }
 
+    html {
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
+        radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      background-color: #0b1020;
+    }
+
     body {
       margin: 0;
       color: var(--text);
@@ -397,6 +405,18 @@
     .modal-memo::placeholder { color: var(--muted); opacity: 0.6; }
     @media (max-width: 640px) { .modal-memo { font-size: 16px; } }
 
+    /* 行く・メモあり ステータスバッジ */
+    .status-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; white-space: nowrap;
+    }
+    .going-active  { background: rgba(122,162,255,0.15); color: var(--accent); border: 1px solid rgba(122,162,255,0.4); }
+    .memo-active   { background: rgba(76,175,80,0.15);   color: #4caf50;       border: 1px solid rgba(76,175,80,0.4); }
+
+    /* PC 専用列 */
+    .col-going, .col-memo { width: 70px; text-align: center; }
+
 /* スクロールトップボタン */
     .scroll-top {
       position: fixed;
@@ -590,6 +610,15 @@
         color: var(--muted);
       }
 
+      /* 行く・メモあり バッジ（モバイル） */
+      .col-going, .col-memo {
+        flex: 0 0 auto;
+        padding: 0;
+        border: none;
+        margin-top: 4px;
+      }
+      .col-going:empty, .col-memo:empty { display: none; }
+
       /* 月見出しをカード間の区切りとして表示 */
       .month-header {
         display: block !important;
@@ -678,6 +707,8 @@
             <th style="width:110px">区分</th>
             <th>対戦相手</th>
             <th>会場</th>
+            <th class="col-going">行く</th>
+            <th class="col-memo">メモあり</th>
           </tr>
         </thead>
         <tbody id="scheduleBody"></tbody>
@@ -889,12 +920,16 @@
         const oppText = highlight(row["対戦相手"], opponentKey);
         const venueText = highlight(row["会場"], venueKey);
 
+        const going = localStorage.getItem(`brex-going-${row["日付"]}`) === "1";
+        const hasMemo = !!localStorage.getItem(`brex-memo-${row["日付"]}`);
         tr.innerHTML = `
           <td class="col-date">${row["日付"]}</td>
           <td class="col-day ${dayClass}">${day}（${dayJP[day] || "-"}）</td>
           <td class="col-kubun"><span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span></td>
           <td class="col-opponent">${teamLogos[row["対戦相手"]] ? `<img class="team-logo" src="${teamLogos[row["対戦相手"]]}" alt="" loading="lazy" onerror="this.style.display='none'"> ` : ""}${oppText}</td>
           <td class="col-venue">${venueText}</td>
+          <td class="col-going">${going ? '<span class="status-badge going-active">行く！</span>' : ''}</td>
+          <td class="col-memo">${hasMemo ? '<span class="status-badge memo-active">メモ</span>' : ''}</td>
         `;
         frag.appendChild(tr);
       });
@@ -1017,6 +1052,17 @@ const allData = parseCSV(csvData);
     const goingCheck   = document.getElementById("goingCheck");
     let currentDate    = null;
     let currentMemoKey = null;
+    let currentTr      = null;
+
+    function updateRowBadges() {
+      if (!currentTr || !currentDate) return;
+      const going   = localStorage.getItem(`brex-going-${currentDate}`) === "1";
+      const hasMemo = !!localStorage.getItem(`brex-memo-${currentDate}`);
+      const goingTd = currentTr.querySelector(".col-going");
+      const memoTd  = currentTr.querySelector(".col-memo");
+      if (goingTd) goingTd.innerHTML = going   ? '<span class="status-badge going-active">行く！</span>' : '';
+      if (memoTd)  memoTd.innerHTML  = hasMemo ? '<span class="status-badge memo-active">メモ</span>'   : '';
+    }
     const DAY_JP_MODAL = { MON:"月", TUE:"火", WED:"水", THU:"木", FRI:"金", SAT:"土", SUN:"日" };
 
     function openModal() {
@@ -1034,8 +1080,9 @@ const allData = parseCSV(csvData);
       document.body.style.width = "";
       window.scrollTo(0, scrollY);
       modalOverlay.classList.remove("open");
-      currentDate = null;
+      currentDate    = null;
       currentMemoKey = null;
+      currentTr      = null;
     }
 
     document.getElementById("modalClose").addEventListener("click", closeModal);
@@ -1046,6 +1093,7 @@ const allData = parseCSV(csvData);
       if (!currentDate) return;
       if (goingCheck.checked) localStorage.setItem(`brex-going-${currentDate}`, "1");
       else localStorage.removeItem(`brex-going-${currentDate}`);
+      updateRowBadges();
     });
 
     memoInput.addEventListener("input", () => {
@@ -1053,6 +1101,7 @@ const allData = parseCSV(csvData);
       const val = memoInput.value;
       if (val) localStorage.setItem(currentMemoKey, val);
       else localStorage.removeItem(currentMemoKey);
+      updateRowBadges();
     });
 
     scheduleBody.addEventListener("click", e => {
@@ -1090,6 +1139,7 @@ const allData = parseCSV(csvData);
         </div>`;
       currentDate    = date;
       currentMemoKey = `brex-memo-${date}`;
+      currentTr      = tr;
       goingCheck.checked = localStorage.getItem(`brex-going-${date}`) === "1";
       memoInput.value    = localStorage.getItem(currentMemoKey) || "";
       openModal();
