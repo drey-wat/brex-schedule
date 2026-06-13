@@ -772,6 +772,9 @@
         addGoingMark(currentDate);
       } else {
         localStorage.removeItem(`brex-going-${currentDate}`);
+        localStorage.removeItem(`brex-ticket-${currentDate}`);
+        localStorage.removeItem(`brex-hotel-${currentDate}`);
+        localStorage.removeItem(`brex-transport-${currentDate}`);
         removeGoingMark(currentDate);
       }
     });

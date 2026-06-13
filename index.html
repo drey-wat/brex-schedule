@@ -1115,8 +1115,14 @@ const allData = parseCSV(csvData);
 
     goingCheck.addEventListener("change", () => {
       if (!currentDate) return;
-      if (goingCheck.checked) localStorage.setItem(`brex-going-${currentDate}`, "1");
-      else localStorage.removeItem(`brex-going-${currentDate}`);
+      if (goingCheck.checked) {
+        localStorage.setItem(`brex-going-${currentDate}`, "1");
+      } else {
+        localStorage.removeItem(`brex-going-${currentDate}`);
+        localStorage.removeItem(`brex-ticket-${currentDate}`);
+        localStorage.removeItem(`brex-hotel-${currentDate}`);
+        localStorage.removeItem(`brex-transport-${currentDate}`);
+      }
       updateRowBadges();
     });
 
