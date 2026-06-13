@@ -711,6 +711,22 @@
           </label>
         </div>
 
+        <div class="input-wrap check-wrap">
+          <label for="goingOnly">行く！</label>
+          <label class="check-label">
+            <input id="goingOnly" type="checkbox" />
+            行く！のみ
+          </label>
+        </div>
+
+        <div class="input-wrap check-wrap">
+          <label for="memoOnly">メモ</label>
+          <label class="check-label">
+            <input id="memoOnly" type="checkbox" />
+            メモありのみ
+          </label>
+        </div>
+
         <div class="actions">
           <button id="resetBtn" class="btn">リセット</button>
         </div>
@@ -866,6 +882,8 @@
     const opponentFilter = document.getElementById("opponentFilter");
     const venueFilter = document.getElementById("venueFilter");
     const seriesOnly = document.getElementById("seriesOnly");
+    const goingOnly  = document.getElementById("goingOnly");
+    const memoOnly   = document.getElementById("memoOnly");
     const resetBtn = document.getElementById("resetBtn");
     const filterCard = document.getElementById("filterCard");
     const filterToggle = document.getElementById("filterToggle");
@@ -969,6 +987,8 @@
       if (opponentFilter.value) chips.push({ key: "opponent", label: `相手: ${opponentFilter.value}` });
       if (venueFilter.value) chips.push({ key: "venue", label: `会場: ${venueFilter.value}` });
       if (seriesOnly.checked) chips.push({ key: "series", label: "連戦のみ" });
+      if (goingOnly.checked)  chips.push({ key: "going",  label: "行く！のみ" });
+      if (memoOnly.checked)   chips.push({ key: "memo",   label: "メモあり" });
       activeChips.innerHTML = chips.map(c =>
         `<button class="chip" data-key="${c.key}">${c.label} ×</button>`
       ).join("");
@@ -994,7 +1014,7 @@ const allData = parseCSV(csvData);
         kubunFilter.value,
         opponentFilter.value,
         venueFilter.value,
-      ].filter(Boolean).length + (seriesOnly.checked ? 1 : 0);
+      ].filter(Boolean).length + (seriesOnly.checked ? 1 : 0) + (goingOnly.checked ? 1 : 0) + (memoOnly.checked ? 1 : 0);
       filterBadge.textContent = count > 0 ? String(count) : "";
     }
 
@@ -1005,15 +1025,19 @@ const allData = parseCSV(csvData);
       const opponentKey = opponentFilter.value.trim().toLowerCase();
       const venueKey = venueFilter.value.trim().toLowerCase();
       const seriesOnlyKey = seriesOnly.checked;
+      const goingOnlyKey  = goingOnly.checked;
+      const memoOnlyKey   = memoOnly.checked;
 
       currentFiltered = allData.filter(row => {
-        const okDate = !dateKey || toInputDate(row["日付"]) === dateKey;
-        const okDay = !dayKey || row["曜日"] === dayKey;
-        const okKubun = !kubunKey || row["区分"] === kubunKey;
-        const okOpp = !opponentKey || row["対戦相手"].toLowerCase().includes(opponentKey);
-        const okVenue = !venueKey || row["会場"].toLowerCase().includes(venueKey);
+        const okDate   = !dateKey      || toInputDate(row["日付"]) === dateKey;
+        const okDay    = !dayKey       || row["曜日"] === dayKey;
+        const okKubun  = !kubunKey     || row["区分"] === kubunKey;
+        const okOpp    = !opponentKey  || row["対戦相手"].toLowerCase().includes(opponentKey);
+        const okVenue  = !venueKey     || row["会場"].toLowerCase().includes(venueKey);
         const okSeries = !seriesOnlyKey || row.__isConsecutiveOpponent;
-        return okDate && okDay && okKubun && okOpp && okVenue && okSeries;
+        const okGoing  = !goingOnlyKey  || localStorage.getItem(`brex-going-${row["日付"]}`) === "1";
+        const okMemo   = !memoOnlyKey   || !!localStorage.getItem(`brex-memo-${row["日付"]}`);
+        return okDate && okDay && okKubun && okOpp && okVenue && okSeries && okGoing && okMemo;
       });
 
       renderTable(currentFiltered, opponentKey, venueKey);
@@ -1038,6 +1062,8 @@ const allData = parseCSV(csvData);
     });
 
     seriesOnly.addEventListener("change", applyFilter);
+    goingOnly.addEventListener("change", applyFilter);
+    memoOnly.addEventListener("change", applyFilter);
 
     resetBtn.addEventListener("click", () => {
       fp.clear();
@@ -1046,6 +1072,8 @@ const allData = parseCSV(csvData);
       opponentFilter.value = "";
       venueFilter.value = "";
       seriesOnly.checked = false;
+      goingOnly.checked  = false;
+      memoOnly.checked   = false;
       currentFiltered = allData;
       renderTable(allData);
       updateFilterBadge();
@@ -1062,6 +1090,8 @@ const allData = parseCSV(csvData);
       else if (key === "opponent") opponentFilter.value = "";
       else if (key === "venue") venueFilter.value = "";
       else if (key === "series") seriesOnly.checked = false;
+      else if (key === "going")  goingOnly.checked  = false;
+      else if (key === "memo")   memoOnly.checked   = false;
       applyFilter();
     });
 
