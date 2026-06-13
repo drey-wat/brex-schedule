@@ -85,6 +85,17 @@
     /* ── カードリスト ── */
     .count { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 
+    .month-heading {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 2px 2px;
+      margin: 20px 0 6px;
+    }
+    .month-heading:first-child { margin-top: 0; }
+
     .game-list { display: flex; flex-direction: column; gap: 10px; }
 
     .game-card {
@@ -232,6 +243,40 @@
       .modal-memo { font-size: 16px; }
     }
 
+    /* 準備チェックリスト */
+    .checklist-section {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 0 4px;
+      border-top: 1px solid var(--line);
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-item input[type="checkbox"] {
+      appearance: none; -webkit-appearance: none;
+      width: 20px; height: 20px; flex-shrink: 0;
+      border: 2px solid var(--line); border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      cursor: pointer; position: relative;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .check-item input[type="checkbox"]:checked { background: #4caf50; border-color: #4caf50; }
+    .check-item input[type="checkbox"]:checked::after {
+      content: "✓"; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff; font-size: 12px; font-weight: 900; line-height: 1;
+    }
+
     /* スクロールトップ */
     .scroll-top {
       position: fixed; bottom: 24px; right: 20px;
@@ -279,6 +324,11 @@
           <input type="checkbox" id="goingCheck">
           <span>行く！</span>
         </label>
+      </div>
+      <div class="checklist-section">
+        <label class="check-item"><input type="checkbox" id="ticketCheck"> チケット購入済</label>
+        <label class="check-item"><input type="checkbox" id="hotelCheck"> ホテル予約済</label>
+        <label class="check-item"><input type="checkbox" id="transportCheck"> 交通手段予約済</label>
       </div>
       <div class="memo-section">
         <label class="memo-label" for="memoInput">メモ</label>
@@ -406,7 +456,11 @@
           dates.push(key.replace("brex-going-", ""));
         }
       }
-      return dates.filter(d => rowByDate[d]).sort();
+      return dates.filter(d => rowByDate[d]).sort((a, b) => {
+        const [ay, am, ad] = a.split("/").map(Number);
+        const [by, bm, bd] = b.split("/").map(Number);
+        return ay !== by ? ay - by : am !== bm ? am - bm : ad - bd;
+      });
     }
 
     function render() {
@@ -424,6 +478,7 @@
       empty.style.display = "none";
       count.textContent = `${dates.length}試合`;
 
+      let currentMonth = null;
       dates.forEach(date => {
         const row   = rowByDate[date];
         const day   = row["曜日"];
@@ -434,6 +489,15 @@
         const [y, m, d] = date.split("/");
         const logo  = teamLogos[opp] || "";
         const dayClass = day === "SAT" ? "sat" : day === "SUN" ? "sun" : "";
+
+        const monthKey = `${y}/${m}`;
+        if (monthKey !== currentMonth) {
+          currentMonth = monthKey;
+          const heading = document.createElement("p");
+          heading.className = "month-heading";
+          heading.textContent = `${y}年${m}月`;
+          list.appendChild(heading);
+        }
 
         const card = document.createElement("div");
         card.className = "game-card";
@@ -461,9 +525,12 @@
     }
 
     // ── モーダル ──
-    const modalOverlay = document.getElementById("modalOverlay");
-    const memoInput    = document.getElementById("memoInput");
-    const goingCheck   = document.getElementById("goingCheck");
+    const modalOverlay  = document.getElementById("modalOverlay");
+    const memoInput     = document.getElementById("memoInput");
+    const goingCheck    = document.getElementById("goingCheck");
+    const ticketCheck   = document.getElementById("ticketCheck");
+    const hotelCheck    = document.getElementById("hotelCheck");
+    const transportCheck = document.getElementById("transportCheck");
     let currentDate    = null;
     let currentMemoKey = null;
 
@@ -497,9 +564,28 @@
         localStorage.setItem(`brex-going-${currentDate}`, "1");
       } else {
         localStorage.removeItem(`brex-going-${currentDate}`);
+        localStorage.removeItem(`brex-ticket-${currentDate}`);
+        localStorage.removeItem(`brex-hotel-${currentDate}`);
+        localStorage.removeItem(`brex-transport-${currentDate}`);
         closeModal();
         render();
       }
+    });
+
+    ticketCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (ticketCheck.checked) localStorage.setItem(`brex-ticket-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-ticket-${currentDate}`);
+    });
+    hotelCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (hotelCheck.checked) localStorage.setItem(`brex-hotel-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-hotel-${currentDate}`);
+    });
+    transportCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (transportCheck.checked) localStorage.setItem(`brex-transport-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-transport-${currentDate}`);
     });
 
     memoInput.addEventListener("input", () => {
@@ -559,8 +645,11 @@
         </div>`;
       currentDate    = date;
       currentMemoKey = `brex-memo-${date}`;
-      goingCheck.checked = true;
-      memoInput.value    = localStorage.getItem(currentMemoKey) || "";
+      goingCheck.checked    = true;
+      ticketCheck.checked   = localStorage.getItem(`brex-ticket-${date}`) === "1";
+      hotelCheck.checked    = localStorage.getItem(`brex-hotel-${date}`) === "1";
+      transportCheck.checked = localStorage.getItem(`brex-transport-${date}`) === "1";
+      memoInput.value = localStorage.getItem(currentMemoKey) || "";
       openModal();
     });
 
