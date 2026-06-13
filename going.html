@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>行く！リスト — 宇都宮ブレックス 2026-2027</title>
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #111a33;
+      --glass: rgba(255, 255, 255, 0.08);
+      --text: #eaf0ff;
+      --muted: #a7b0ca;
+      --line: rgba(255, 255, 255, 0.16);
+      --accent: #7aa2ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
+        radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      background-color: #0b1020;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3b7a 0%, transparent 55%),
+        radial-gradient(1000px 600px at 110% 110%, #4a2478 0%, transparent 52%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      padding: 28px 14px;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 720px; margin: 0 auto; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .title { margin: 0; font-size: clamp(1.2rem, 2vw, 1.8rem); }
+    .title small { font-size: 0.6em; font-weight: 400; color: var(--muted); margin-left: 4px; }
+    .title-logo { height: 1.6em; width: auto; object-fit: contain; vertical-align: middle; margin-right: 6px; }
+
+    .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid rgba(122,162,255,0.4);
+      border-radius: 999px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: rgba(122,162,255,0.12); }
+
+    .badge {
+      display: inline-block;
+      min-width: 58px;
+      text-align: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .home { background: #FFD400; color: #12315A; }
+    .away { background: #ffffff; color: #12315A; border: 1px solid #12315A; }
+
+    /* ── カードリスト ── */
+    .count { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+
+    .game-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .game-card {
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .game-card:hover { background: rgba(255,255,255,0.11); }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-date { font-size: 12px; color: var(--muted); }
+    .card-day  { font-size: 12px; }
+    .card-day.sat { color: #4da3ff; font-weight: 700; }
+    .card-day.sun { color: #ff6b6b; font-weight: 700; }
+
+    .card-opponent {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .card-logo { height: 28px; width: auto; object-fit: contain; }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .card-venue {
+      font-size: 12px;
+      color: var(--muted);
+      flex: 1 1 auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .card-memo-snippet {
+      font-size: 11px;
+      color: #4caf50;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── 空のステート ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 44px; margin-bottom: 14px; }
+    .empty-state p { font-size: 14px; margin: 0 0 20px; }
+    .empty-state .nav-link { margin: 0 auto; }
+
+    /* ── モーダル ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: rgba(15,27,54,0.97);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px 24px 24px;
+      width: min(400px, 90vw);
+      max-height: min(90svh, 90vh);
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      transform: translateY(12px);
+      transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute; top: 12px; right: 14px;
+      background: none; border: none;
+      color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; padding: 4px;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-row {
+      display: flex; gap: 10px; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .modal-row:last-child { border-bottom: none; }
+    .modal-label { width: 60px; font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .modal-value { color: var(--text); font-weight: 600; }
+    .modal-opp { display: flex; align-items: center; gap: 8px; }
+    .modal-logo { height: 28px; width: auto; object-fit: contain; }
+
+    .going-section {
+      display: flex; align-items: center;
+      padding: 12px 0 4px; border-top: 1px solid var(--line); margin-top: 4px;
+    }
+    .going-label {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; font-size: 15px; font-weight: 700;
+      color: var(--text); user-select: none;
+    }
+    .going-label input[type="checkbox"] {
+      appearance: none; -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border: 2px solid var(--line); border-radius: 5px;
+      background: rgba(255,255,255,0.06);
+      cursor: pointer; position: relative; flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .going-label input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+    .going-label input[type="checkbox"]:checked::after {
+      content: "✓"; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: #0b1020; font-size: 14px; font-weight: 900; line-height: 1;
+    }
+    .memo-section { margin-top: 14px; }
+    .memo-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .modal-memo {
+      width: 100%; padding: 10px 12px;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+      border-radius: 8px; color: var(--text); font-size: 13px;
+      font-family: inherit; resize: vertical; min-height: 72px;
+      outline: none; transition: border-color 0.15s; box-sizing: border-box;
+    }
+    .modal-memo:focus { border-color: rgba(122,162,255,0.5); }
+    .modal-memo::placeholder { color: var(--muted); opacity: 0.6; }
+    @media (max-width: 640px) {
+      body { padding: 16px 10px; }
+      .modal-memo { font-size: 16px; }
+    }
+
+    /* スクロールトップ */
+    .scroll-top {
+      position: fixed; bottom: 24px; right: 20px;
+      width: 44px; height: 44px; padding: 0;
+      border-radius: 50%; background: var(--accent);
+      color: #0b1020; font-size: 20px; font-weight: 700;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none; z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .scroll-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1 class="title">
+        <img class="title-logo" src="https://bleague.bl.kuroco-img.app/files/user/common/img/logo/2025/s/ub.png" alt="">宇都宮ブレックス <small>行く！リスト</small>
+      </h1>
+      <div class="nav-links">
+        <a class="nav-link" href="index.html">一覧</a>
+        <a class="nav-link" href="calendar.html">カレンダー</a>
+      </div>
+    </div>
+
+    <p class="count" id="countLabel"></p>
+    <div class="game-list" id="gameList"></div>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="icon">🏀</div>
+      <p>「行く！」チェックをつけた試合がありません</p>
+      <a class="nav-link" href="index.html">スケジュール一覧へ</a>
+    </div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">×</button>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="going-section">
+        <label class="going-label">
+          <input type="checkbox" id="goingCheck">
+          <span>行く！</span>
+        </label>
+      </div>
+      <div class="memo-section">
+        <label class="memo-label" for="memoInput">メモ</label>
+        <textarea id="memoInput" class="modal-memo" placeholder="メモを入力..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button id="scrollTopBtn" class="scroll-top" aria-label="トップへ戻る">↑</button>
+
+  <script>
+    const csvData = `日付,曜日,区分,対戦相手,会場
+2026/9/26,SAT,HOME,横浜ビー・コルセアーズ,日環アリーナ栃木
+2026/9/27,SUN,HOME,横浜ビー・コルセアーズ,日環アリーナ栃木
+2026/10/3,SAT,AWAY,富山グラウジーズ,YKK APアリーナ
+2026/10/4,SUN,AWAY,富山グラウジーズ,YKK APアリーナ
+2026/10/9,FRI,AWAY,茨城ロボッツ,アダストリアみとアリーナ
+2026/10/11,SUN,HOME,秋田ノーザンハピネッツ,ブレックスアリーナ宇都宮
+2026/10/17,SAT,AWAY,仙台89ERS,ゼビオアリーナ仙台
+2026/10/19,MON,HOME,群馬クレインサンダーズ,ブレックスアリーナ宇都宮
+2026/10/21,WED,HOME,名古屋ダイヤモンドドルフィンズ,ブレックスアリーナ宇都宮
+2026/10/24,SAT,HOME,信州ブレイブウォリアーズ,ブレックスアリーナ宇都宮
+2026/10/26,MON,HOME,川崎ブレイブサンダース,ブレックスアリーナ宇都宮
+2026/10/31,SAT,AWAY,アルバルク東京,TOYOTA ARENA TOKYO
+2026/11/1,SUN,AWAY,アルバルク東京,TOYOTA ARENA TOKYO
+2026/11/7,SAT,HOME,琉球ゴールデンキングス,ブレックスアリーナ宇都宮
+2026/11/11,WED,HOME,京都ハンナリーズ,ブレックスアリーナ宇都宮
+2026/11/15,SUN,AWAY,島根スサノオマジック,松江市総合体育館
+2026/11/18,WED,HOME,レバンガ北海道,ブレックスアリーナ宇都宮
+2026/12/4,FRI,AWAY,シーホース三河,ウィングアリーナ刈谷
+2026/12/6,SUN,HOME,三遠ネオフェニックス,ブレックスアリーナ宇都宮
+2026/12/12,SAT,HOME,サンロッカーズ渋谷,日環アリーナ栃木
+2026/12/13,SUN,HOME,サンロッカーズ渋谷,日環アリーナ栃木
+2026/12/16,WED,AWAY,琉球ゴールデンキングス,沖縄サントリーアリーナ
+2026/12/18,FRI,AWAY,大阪エヴェッサ,おおきにアリーナ舞洲
+2026/12/20,SUN,AWAY,大阪エヴェッサ,おおきにアリーナ舞洲
+2026/12/25,FRI,HOME,神戸ストークス,ブレックスアリーナ宇都宮
+2026/12/27,SUN,HOME,神戸ストークス,ブレックスアリーナ宇都宮
+2027/1/2,SAT,AWAY,レバンガ北海道,北海きたえーる
+2027/1/3,SUN,AWAY,レバンガ北海道,北海きたえーる
+2027/1/22,FRI,AWAY,京都ハンナリーズ,京都市体育館
+2027/1/24,SUN,AWAY,佐賀バルーナーズ,SAGAアリーナ
+2027/1/27,WED,HOME,滋賀レイクス,ブレックスアリーナ宇都宮
+2027/1/30,SAT,AWAY,川崎ブレイブサンダース,東急ドレッセとどろきアリーナ
+2027/1/31,SUN,AWAY,川崎ブレイブサンダース,東急ドレッセとどろきアリーナ
+2027/2/3,WED,AWAY,名古屋ダイヤモンドドルフィンズ,IGアリーナ
+2027/2/6,SAT,HOME,仙台89ERS,ブレックスアリーナ宇都宮
+2027/2/7,SUN,HOME,仙台89ERS,ブレックスアリーナ宇都宮
+2027/2/11,THU,HOME,三遠ネオフェニックス,ブレックスアリーナ宇都宮
+2027/2/13,SAT,AWAY,滋賀レイクス,滋賀ダイハツアリーナ
+2027/2/16,TUE,AWAY,広島ドラゴンフライズ,広島グリーンアリーナ
+2027/3/5,FRI,HOME,千葉ジェッツ,日環アリーナ栃木
+2027/3/7,SUN,HOME,千葉ジェッツ,日環アリーナ栃木
+2027/3/10,WED,AWAY,シーホース三河,スカイホール豊田
+2027/3/12,FRI,AWAY,群馬クレインサンダーズ,オープンハウスアリーナ太田
+2027/3/14,SUN,AWAY,群馬クレインサンダーズ,オープンハウスアリーナ太田
+2027/3/17,WED,HOME,富山グラウジーズ,ブレックスアリーナ宇都宮
+2027/3/20,SAT,HOME,茨城ロボッツ,ブレックスアリーナ宇都宮
+2027/3/21,SUN,HOME,茨城ロボッツ,ブレックスアリーナ宇都宮
+2027/3/24,WED,HOME,長崎ヴェルカ,ブレックスアリーナ宇都宮
+2027/3/31,WED,AWAY,佐賀バルーナーズ,SAGAアリーナ
+2027/4/3,SAT,HOME,広島ドラゴンフライズ,調整中
+2027/4/7,WED,HOME,アルバルク東京,調整中
+2027/4/10,SAT,HOME,アルティーリ千葉,調整中
+2027/4/11,SUN,HOME,アルティーリ千葉,調整中
+2027/4/14,WED,AWAY,横浜ビー・コルセアーズ,横浜BUNTAI
+2027/4/21,WED,AWAY,千葉ジェッツ,LaLa arena TOKYO-BAY
+2027/4/24,SAT,AWAY,秋田ノーザンハピネッツ,CNAアリーナ☆あきた(予定)
+2027/4/25,SUN,AWAY,秋田ノーザンハピネッツ,CNAアリーナ☆あきた(予定)
+2027/4/28,WED,AWAY,サンロッカーズ渋谷,TOYOTA ARENA TOKYO
+2027/4/30,FRI,HOME,長崎ヴェルカ,調整中
+2027/5/2,SUN,AWAY,アルティーリ千葉,千葉ポートアリーナ`;
+
+    const LOGO_BASE = "https://bleague.bl.kuroco-img.app/files/user/common/img/logo/2025/s/";
+    const teamLogos = {
+      "横浜ビー・コルセアーズ":         LOGO_BASE + "yb.png",
+      "富山グラウジーズ":               LOGO_BASE + "tg.png",
+      "茨城ロボッツ":                   LOGO_BASE + "ir.png",
+      "秋田ノーザンハピネッツ":         LOGO_BASE + "an.png",
+      "仙台89ERS":                      LOGO_BASE + "se.png",
+      "群馬クレインサンダーズ":         LOGO_BASE + "gc.png",
+      "名古屋ダイヤモンドドルフィンズ": LOGO_BASE + "dd.png",
+      "信州ブレイブウォリアーズ":       LOGO_BASE + "bw.png",
+      "川崎ブレイブサンダース":         LOGO_BASE + "kb.png",
+      "アルバルク東京":                 LOGO_BASE + "at.png",
+      "琉球ゴールデンキングス":         LOGO_BASE + "rg.png",
+      "京都ハンナリーズ":               LOGO_BASE + "kh.png",
+      "島根スサノオマジック":           LOGO_BASE + "ss.png",
+      "レバンガ北海道":                 LOGO_BASE + "lh.png",
+      "シーホース三河":                 LOGO_BASE + "sm.png",
+      "三遠ネオフェニックス":           LOGO_BASE + "sn.png",
+      "サンロッカーズ渋谷":             LOGO_BASE + "sr.png",
+      "大阪エヴェッサ":                 LOGO_BASE + "oe.png",
+      "神戸ストークス":                 LOGO_BASE + "ns.png",
+      "滋賀レイクス":                   LOGO_BASE + "ls.png",
+      "佐賀バルーナーズ":               LOGO_BASE + "sg.png",
+      "広島ドラゴンフライズ":           LOGO_BASE + "hd.png",
+      "千葉ジェッツ":                   LOGO_BASE + "cj.png",
+      "長崎ヴェルカ":                   LOGO_BASE + "nv.png",
+      "アルティーリ千葉":               LOGO_BASE + "ac.png",
+    };
+
+    const DAY_JP = { MON:"月", TUE:"火", WED:"水", THU:"木", FRI:"金", SAT:"土", SUN:"日" };
+
+    function parseCSV(csv) {
+      const lines = csv.trim().split("\n");
+      const headers = lines[0].split(",");
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => (obj[h.trim()] = (cols[i] || "").trim()));
+        return obj;
+      });
+    }
+
+    const allRows = parseCSV(csvData);
+    const rowByDate = {};
+    allRows.forEach(r => { rowByDate[r["日付"]] = r; });
+
+    function getGoingDates() {
+      const dates = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("brex-going-") && localStorage.getItem(key) === "1") {
+          dates.push(key.replace("brex-going-", ""));
+        }
+      }
+      return dates.filter(d => rowByDate[d]).sort();
+    }
+
+    function render() {
+      const dates = getGoingDates();
+      const list  = document.getElementById("gameList");
+      const empty = document.getElementById("emptyState");
+      const count = document.getElementById("countLabel");
+
+      list.innerHTML = "";
+      if (!dates.length) {
+        count.textContent = "";
+        empty.style.display = "";
+        return;
+      }
+      empty.style.display = "none";
+      count.textContent = `${dates.length}試合`;
+
+      dates.forEach(date => {
+        const row   = rowByDate[date];
+        const day   = row["曜日"];
+        const kubun = row["区分"];
+        const opp   = row["対戦相手"];
+        const venue = row["会場"];
+        const memo  = localStorage.getItem(`brex-memo-${date}`) || "";
+        const [y, m, d] = date.split("/");
+        const logo  = teamLogos[opp] || "";
+        const dayClass = day === "SAT" ? "sat" : day === "SUN" ? "sun" : "";
+
+        const card = document.createElement("div");
+        card.className = "game-card";
+        card.dataset.date     = date;
+        card.dataset.day      = day;
+        card.dataset.kubun    = kubun;
+        card.dataset.opponent = opp;
+        card.dataset.venue    = venue;
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="card-date">${y}/${m}/${d}</span>
+            <span class="card-day ${dayClass}">${DAY_JP[day] || day}</span>
+            <span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span>
+          </div>
+          <div class="card-opponent">
+            ${logo ? `<img class="card-logo" src="${logo}" alt="" onerror="this.style.display='none'">` : ""}
+            ${opp}
+          </div>
+          <div class="card-bottom">
+            <span class="card-venue">${venue}</span>
+            ${memo ? `<span class="card-memo-snippet">📝 ${memo}</span>` : ""}
+          </div>`;
+        list.appendChild(card);
+      });
+    }
+
+    // ── モーダル ──
+    const modalOverlay = document.getElementById("modalOverlay");
+    const memoInput    = document.getElementById("memoInput");
+    const goingCheck   = document.getElementById("goingCheck");
+    let currentDate    = null;
+    let currentMemoKey = null;
+
+    function openModal() {
+      const scrollY = window.scrollY;
+      document.body.dataset.scrollY = scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      modalOverlay.classList.add("open");
+    }
+
+    function closeModal() {
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
+      modalOverlay.classList.remove("open");
+      currentDate    = null;
+      currentMemoKey = null;
+    }
+
+    document.getElementById("modalClose").addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+    goingCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (goingCheck.checked) {
+        localStorage.setItem(`brex-going-${currentDate}`, "1");
+      } else {
+        localStorage.removeItem(`brex-going-${currentDate}`);
+        closeModal();
+        render();
+      }
+    });
+
+    memoInput.addEventListener("input", () => {
+      if (!currentMemoKey) return;
+      const val = memoInput.value;
+      if (val) localStorage.setItem(currentMemoKey, val);
+      else localStorage.removeItem(currentMemoKey);
+      // メモスニペットをカードに即時反映
+      const card = document.querySelector(`.game-card[data-date="${currentDate}"]`);
+      if (card) {
+        const snippet = card.querySelector(".card-memo-snippet");
+        const bottom  = card.querySelector(".card-bottom");
+        if (val) {
+          if (snippet) {
+            snippet.textContent = `📝 ${val}`;
+          } else {
+            const s = document.createElement("span");
+            s.className = "card-memo-snippet";
+            s.textContent = `📝 ${val}`;
+            bottom.appendChild(s);
+          }
+        } else if (snippet) {
+          snippet.remove();
+        }
+      }
+    });
+
+    document.getElementById("gameList").addEventListener("click", e => {
+      const card = e.target.closest(".game-card[data-date]");
+      if (!card) return;
+      const { date, day, kubun, opponent, venue } = card.dataset;
+      const [y, m, d] = date.split("/");
+      const logo = teamLogos[opponent] || "";
+      document.getElementById("modalBody").innerHTML = `
+        <div class="modal-row">
+          <span class="modal-label">日付</span>
+          <span class="modal-value">${y}年${m}月${d}日</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">曜日</span>
+          <span class="modal-value">${DAY_JP[day] || day}（${day}）</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">区分</span>
+          <span class="modal-value"><span class="badge ${kubun === "HOME" ? "home" : "away"}">${kubun}</span></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">対戦相手</span>
+          <span class="modal-value modal-opp">
+            ${logo ? `<img class="modal-logo" src="${logo}" alt="" onerror="this.style.display='none'">` : ""}
+            ${opponent}
+          </span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">会場</span>
+          <span class="modal-value">${venue}</span>
+        </div>`;
+      currentDate    = date;
+      currentMemoKey = `brex-memo-${date}`;
+      goingCheck.checked = true;
+      memoInput.value    = localStorage.getItem(currentMemoKey) || "";
+      openModal();
+    });
+
+    window.addEventListener("scroll", () => {
+      document.getElementById("scrollTopBtn").classList.toggle("visible", window.scrollY > 300);
+    }, { passive: true });
+    document.getElementById("scrollTopBtn").addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    render();
+  </script>
+</body>
+</html>

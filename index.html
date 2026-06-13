@@ -659,7 +659,10 @@
   <div class="container">
     <div class="title-row">
       <h1 class="title"><img class="title-logo" src="https://bleague.bl.kuroco-img.app/files/user/common/img/logo/2025/s/ub.png" alt="">宇都宮ブレックス <small>2026-2027 スケジュール</small></h1>
-      <a class="nav-link" href="calendar.html">カレンダー表示</a>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <a class="nav-link" href="calendar.html" style="margin-left:0">カレンダー表示</a>
+        <a class="nav-link" href="going.html" style="margin-left:0">行く！リスト</a>
+      </div>
     </div>
 
     <div class="card filters" id="filterCard">
@@ -1183,14 +1186,5 @@ const allData = parseCSV(csvData);
     renderTable(allData);
     updateChips();
   </script>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T044QX26YZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-T044QX26YZ');
-</script>
 </body>
 </html>
