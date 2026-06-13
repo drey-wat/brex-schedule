@@ -994,6 +994,13 @@
       }
       empty.style.display = "none";
 
+      const monthCount = {};
+      data.forEach(row => {
+        const [y, m] = row["日付"].split("/").map(Number);
+        const k = `${y}/${m}`;
+        monthCount[k] = (monthCount[k] || 0) + 1;
+      });
+
       const frag = document.createDocumentFragment();
       let currentMonth = null;
 
@@ -1005,7 +1012,7 @@
           currentMonth = monthKey;
           const mtr = document.createElement("tr");
           mtr.className = "month-header";
-          mtr.innerHTML = `<td colspan="5">${y}年${m}月</td>`;
+          mtr.innerHTML = `<td colspan="5">${y}年${m}月 <span style="font-weight:400;margin-left:6px">${monthCount[monthKey]}試合</span></td>`;
           frag.appendChild(mtr);
         }
 
