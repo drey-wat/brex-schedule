@@ -478,6 +478,13 @@
       empty.style.display = "none";
       count.textContent = `${dates.length}試合`;
 
+      const monthCount = {};
+      dates.forEach(date => {
+        const [y, m] = date.split("/");
+        const k = `${y}/${m}`;
+        monthCount[k] = (monthCount[k] || 0) + 1;
+      });
+
       let currentMonth = null;
       dates.forEach(date => {
         const row   = rowByDate[date];
@@ -495,7 +502,7 @@
           currentMonth = monthKey;
           const heading = document.createElement("p");
           heading.className = "month-heading";
-          heading.textContent = `${y}年${m}月`;
+          heading.textContent = `${y}年${m}月 — ${monthCount[monthKey]}試合`;
           list.appendChild(heading);
         }
 
@@ -662,14 +669,5 @@
 
     render();
   </script>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T044QX26YZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-T044QX26YZ');
-</script>
 </body>
 </html>
