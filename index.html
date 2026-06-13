@@ -468,6 +468,16 @@
       .filters { grid-template-columns: 1fr; }
     }
 
+    /* ── タブレット ── */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      body { padding: 20px 12px; }
+      table { min-width: 660px; }
+      thead th:nth-child(1) { width: 110px !important; }
+      thead th:nth-child(2) { width: 70px !important; }
+      thead th:nth-child(3) { width: 75px !important; }
+      .col-going, .col-memo { width: 60px; }
+    }
+
     /* ── モバイル: カードレイアウト ── */
     @media (max-width: 640px) {
       body { padding: 16px 10px; }
