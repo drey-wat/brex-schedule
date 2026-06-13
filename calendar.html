@@ -771,6 +771,10 @@
         localStorage.setItem(`brex-going-${currentDate}`, "1");
         addGoingMark(currentDate);
       } else {
+        if (!confirm("「行く！」チェックを外しますか？")) {
+          goingCheck.checked = true;
+          return;
+        }
         localStorage.removeItem(`brex-going-${currentDate}`);
         localStorage.removeItem(`brex-ticket-${currentDate}`);
         localStorage.removeItem(`brex-hotel-${currentDate}`);
