@@ -418,6 +418,40 @@
     /* PC 専用列 */
     .col-going, .col-memo { width: 90px; text-align: center; }
 
+/* 準備チェックリスト */
+    .checklist-section {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 0 4px;
+      border-top: 1px solid var(--line);
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-item input[type="checkbox"] {
+      appearance: none; -webkit-appearance: none;
+      width: 20px; height: 20px; flex-shrink: 0;
+      border: 2px solid var(--line); border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      cursor: pointer; position: relative;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .check-item input[type="checkbox"]:checked { background: #4caf50; border-color: #4caf50; }
+    .check-item input[type="checkbox"]:checked::after {
+      content: "✓"; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff; font-size: 12px; font-weight: 900; line-height: 1;
+    }
+
 /* スクロールトップボタン */
     .scroll-top {
       position: fixed;
@@ -450,18 +484,42 @@
       pointer-events: auto;
     }
 
-    /* デスクトップ: filter-body を透過させてグリッドに参加させる */
+    /* デスクトップ: フィルターグリッドを filter-body に移動・トグルボタン表示 */
     @media (min-width: 641px) {
-      .filter-body { display: contents; }
+      .filter-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0 2px 10px;
+        letter-spacing: 0.05em;
+        text-align: left;
+      }
+      .filter-header:hover { color: var(--text); }
+      .filters { display: block; }
+      .filter-body {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      .filters.is-collapsed .filter-body { display: none; }
     }
 
     /* ── レスポンシブ (breakpoints) ── */
     @media (max-width: 1320px) {
       .filters { grid-template-columns: repeat(4, minmax(140px, 1fr)); }
+      .filter-body { grid-template-columns: repeat(4, minmax(140px, 1fr)); }
     }
 
     @media (max-width: 820px) {
       .filters { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .filter-body { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
     }
 
     @media (max-width: 560px) {
@@ -659,10 +717,7 @@
   <div class="container">
     <div class="title-row">
       <h1 class="title"><img class="title-logo" src="https://bleague.bl.kuroco-img.app/files/user/common/img/logo/2025/s/ub.png" alt="">宇都宮ブレックス <small>2026-2027 スケジュール</small></h1>
-      <div style="display:flex;gap:8px;margin-left:auto">
-        <a class="nav-link" href="calendar.html" style="margin-left:0">カレンダー表示</a>
-        <a class="nav-link" href="going.html" style="margin-left:0">行く！リスト</a>
-      </div>
+      <a class="nav-link" href="calendar.html">カレンダー表示</a>
     </div>
 
     <div class="card filters" id="filterCard">
@@ -766,6 +821,11 @@
           <input type="checkbox" id="goingCheck">
           <span>行く！</span>
         </label>
+      </div>
+      <div class="checklist-section">
+        <label class="check-item"><input type="checkbox" id="ticketCheck"> チケット購入済</label>
+        <label class="check-item"><input type="checkbox" id="hotelCheck"> ホテル予約済</label>
+        <label class="check-item"><input type="checkbox" id="transportCheck"> 交通手段予約済</label>
       </div>
       <div class="memo-section">
         <label class="memo-label" for="memoInput">メモ</label>
@@ -1101,9 +1161,12 @@ const allData = parseCSV(csvData);
     });
 
     // ── モーダル ──
-    const modalOverlay = document.getElementById("modalOverlay");
-    const memoInput    = document.getElementById("memoInput");
-    const goingCheck   = document.getElementById("goingCheck");
+    const modalOverlay   = document.getElementById("modalOverlay");
+    const memoInput      = document.getElementById("memoInput");
+    const goingCheck     = document.getElementById("goingCheck");
+    const ticketCheck    = document.getElementById("ticketCheck");
+    const hotelCheck     = document.getElementById("hotelCheck");
+    const transportCheck = document.getElementById("transportCheck");
     let currentDate    = null;
     let currentMemoKey = null;
     let currentTr      = null;
@@ -1160,6 +1223,22 @@ const allData = parseCSV(csvData);
       updateRowBadges();
     });
 
+    ticketCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (ticketCheck.checked) localStorage.setItem(`brex-ticket-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-ticket-${currentDate}`);
+    });
+    hotelCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (hotelCheck.checked) localStorage.setItem(`brex-hotel-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-hotel-${currentDate}`);
+    });
+    transportCheck.addEventListener("change", () => {
+      if (!currentDate) return;
+      if (transportCheck.checked) localStorage.setItem(`brex-transport-${currentDate}`, "1");
+      else localStorage.removeItem(`brex-transport-${currentDate}`);
+    });
+
     memoInput.addEventListener("input", () => {
       if (!currentMemoKey) return;
       const val = memoInput.value;
@@ -1204,8 +1283,11 @@ const allData = parseCSV(csvData);
       currentDate    = date;
       currentMemoKey = `brex-memo-${date}`;
       currentTr      = tr;
-      goingCheck.checked = localStorage.getItem(`brex-going-${date}`) === "1";
-      memoInput.value    = localStorage.getItem(currentMemoKey) || "";
+      goingCheck.checked     = localStorage.getItem(`brex-going-${date}`) === "1";
+      ticketCheck.checked    = localStorage.getItem(`brex-ticket-${date}`) === "1";
+      hotelCheck.checked     = localStorage.getItem(`brex-hotel-${date}`) === "1";
+      transportCheck.checked = localStorage.getItem(`brex-transport-${date}`) === "1";
+      memoInput.value = localStorage.getItem(currentMemoKey) || "";
       openModal();
     });
 
